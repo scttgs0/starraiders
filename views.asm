@@ -1,29 +1,19 @@
 ;*** Header text of Long-Range Scan view (shares spaces with following header) *
-LRSHEADER       .byte $00,$00,$6C,$6F,$6E,$67,$00,$72 ; "  LONG RANGE SCAN"
-
-                .byte $61,$6E,$67,$65,$00,$73,$63,$61
-
-                .byte $6E
+LRSHEADER       .text "  LONG RANGE SCAN"
 
 ;*** Header text of Aft view (shares spaces with following header) *************
-AFTHEADER       .byte $00,$00,$00,$00,$00,$00,$61,$66 ; "      AFT VIEW   "
-
-                .byte $74,$00,$76,$69,$65,$77,$00,$00
-
-                .byte $00
+AFTHEADER       .text "      AFT VIEW   "
 
 ;*** Header text of Galactic Chart view ****************************************
-GCHEADER        .byte $00,$00,$00,$67,$61,$6C,$61,$63 ; "   GALACTIC CHART   "
-
-                .byte $74,$69,$63,$00,$63,$68,$61,$72
-
-                .byte $74,$00,$00,$00
+GCHEADER        .text "   GALACTIC CHART   "
 
 ;*** Display List of Galactic Chart view ***************************************
-DLSTGC          .byte $60                             ; BLK7
-                .byte $46,<GCHEADER,>GCHEADER         ; GR1 @ GCHEADER
-                .byte $F0                             ; BLK8 + DLI
-                .byte $47,<GCPFMEM,>GCPFMEM           ; GR2 @ GCPFMEM
+DLSTGC          .byte AEMPTY7
+                .byte $06+ALMS
+                    .word GCHEADER                    ; GR1 @ GCHEADER
+                .byte AEMPTY8+ADLI
+                .byte $07+ALMS
+                    .word GCPFMEM                     ; GR2 @ GCPFMEM
                 .byte $07                             ; GR2
                 .byte $07                             ; GR2
                 .byte $07                             ; GR2
@@ -32,9 +22,12 @@ DLSTGC          .byte $60                             ; BLK7
                 .byte $07                             ; GR2
                 .byte $07                             ; GR2
                 .byte $07                             ; GR2
-                .byte $80                             ; BLK1 + DLI
-                .byte $46,<TITLETXT,>TITLETXT         ; GR1 @ TITLETXT
-                .byte $46,<GCTXT,>GCTXT               ; GR1 @ GCTXT
+                .byte AEMPTY1+ADLI
+                .byte $06+ALMS
+                    .word TITLETXT                    ; GR1 @ TITLETXT
+                .byte $06+ALMS
+                    .word GCTXT                       ; GR1 @ GCTXT
                 .byte $06                             ; GR1
                 .byte $06                             ; GR1
-                .byte $41,<DSPLST,>DSPLST             ; jmp @ DSPLST
+                .byte AVB+AJMP
+                    .word DSPLST
