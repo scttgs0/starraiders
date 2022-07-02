@@ -13,7 +13,7 @@ DLSTGC          .byte AEMPTY7
                     .word GCHEADER                    ; GR1 @ GCHEADER
                 .byte AEMPTY8+ADLI
                 .byte $07+ALMS
-                    .word GCPFMEM                     ; GR2 @ GCPFMEM
+                    .word gcPfMem                     ; GR2 @ gcPfMem
                 .byte $07                             ; GR2
                 .byte $07                             ; GR2
                 .byte $07                             ; GR2

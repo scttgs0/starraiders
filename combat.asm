@@ -168,7 +168,7 @@ LOOP047         lda RANDOM              ; Return if random number >= damage prob
                 lda PL2LIFE             ; Load Zylon photon torpedo lifetime...
                 cmp #30                 ; ...and compare it to 30 game loops
 
-                lda #CCS_COL2           ; Preload COLOR2 text color bits (= damaged status)
+                lda #ccs_Col2           ; Preload COLOR2 text color bits (= damaged status)
                 ldy DAMAGEPHRTAB,X      ; Preload title phrase offset of damaged subsystem
 
                 bcc SKIP135             ; Skip if Zylon torpedo lifetime < 30 game loops
@@ -182,7 +182,7 @@ SKIP133         cpx #4                  ; Skip if selected subsystem is not Long
                 bit GCSTATCOM           ; Skip if Attack Computer already destroyed
                 bvs SKIP135             ;
 
-SKIP134         lda #CCS_COL3           ; Preload COLOR3 text color bits (= destroyed status)
+SKIP134         lda #ccs_Col3           ; Preload COLOR3 text color bits (= destroyed status)
                 ldy DESTROYPHRTAB,X     ; Preload title phrase offset of destroyed subsystem
 
 SKIP135         ora GCSTATPHO,X         ; Combine status letter with new color
@@ -384,7 +384,7 @@ SKIP141         lsr A                   ;
                 cmp #15                 ; Skip if photon torpedo "age" < 15
                 bcc SKIP142             ;
                 lda PL0SHAPTYPE,Y       ; CARRY := PLAYER is ZYLON BASESTAR (shape type 8)
-                cmp #SHAP_ZBASESTAR     ; (and torpedo "age" good to destroy ZYLON BASESTAR)
+                cmp #shapeZBASESTAR     ; (and torpedo "age" good to destroy ZYLON BASESTAR)
 
 ;*** Clean up our starship's photon torpedo and hit PLAYER *********************
 SKIP142         lda #0                  ; Lock-on lifetime := 0 game loops
@@ -396,20 +396,20 @@ SKIP142         lda #0                  ; Lock-on lifetime := 0 game loops
 
                 lda PL0SHAPTYPE,Y       ; If hit PLAYER is...
                 beq SKIP144             ; ...a PHOTON TORPEDO (shape type 0)...
-                cmp #SHAP_METEOR        ; ...or a METEOR (shape type 6)...
+                cmp #shapeMETEOR        ; ...or a METEOR (shape type 6)...
                 beq SKIP144             ; ...do not score, just do explosion
 
                 lda #0                  ; Clear photon torpedo tracking flag
                 sta ISTRACKING          ;
 
 ;*** Zylon ship (or starbase) destroyed! ***************************************
-                ldx CURRSECTOR          ; Decrement Zylon count on Galactic Chart
-                dec GCMEMMAP,X          ;
+                ldx vCurrentSector      ; Decrement Zylon count on Galactic Chart
+                dec gcMemMap,X          ;
                 bpl SKIP143             ; Skip if destroyed space object was Zylon ship
 
 ;*** Starbase destroyed! *******************************************************
                 lda #0                  ; Remove destroyed starbase from Galactic Chart
-                sta GCMEMMAP,X          ;
+                sta gcMemMap,X          ;
                 sec                     ; SCORE := SCORE - 3 for destroying starbase
                 lda SCORE               ;
                 sbc #3                  ;
@@ -431,9 +431,9 @@ SKIP143         clc                     ; SCORE := SCORE + 6 for destroying Zylo
                 ldx #1                  ; Increment Zylon KILL COUNTER readout...
 LOOP049         inc KILLCNTD1,X         ; ...of Control Panel Display
                 lda KILLCNTD1,X         ;
-                cmp #(CCS_COL1|CCS_9)+1 ;
+                cmp #(ccs_Col1|ccs_9)+1 ;
                 bcc SKIP144             ;
-                lda #(CCS_COL1|CCS_0)   ;
+                lda #(ccs_Col1|ccs_0)   ;
                 sta KILLCNTD1,X         ;
                 dex                     ;
                 bpl LOOP049             ;
@@ -442,7 +442,7 @@ SKIP144         jsr INITEXPL            ; Init explosion at hit PLAYER
 
 ;*** Any Zylon ships left? *****************************************************
                 ldx #127                ; Scan all sectors of Galactic Chart
-LOOP050         lda GCMEMMAP,X          ;
+LOOP050         lda gcMemMap,X          ;
                 bmi SKIP145             ;
                 bne SKIP146             ; Return if Zylon sector found
 SKIP145         dex                     ;

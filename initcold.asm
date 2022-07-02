@@ -79,7 +79,7 @@
 ;      the cross hairs, which are also part of the PLAYFIELD. Suggested fix:
 ;      None, technically not possible.  
 ;
-; (7)  Do more initialization in subroutine INITIALIZE ($B3BA).
+; (7)  Do more initialization in subroutine Initialize ($B3BA).
 ;
 ; (8)  Set display to Front view.
 ;
@@ -166,7 +166,7 @@ SKIP001         sta PORTA,X             ; Clear $D300..$D3FF (PIA registers)
                 lda #$03                ; GTIA: Enable DMA for PLAYERs and MISSILEs
                 sta GRACTL              ;
 
-                jsr INITIALIZE          ; Init Display List, tables, Galactic Chart, etc.
+                jsr Initialize          ; Init Display List, tables, Galactic Chart, etc.
 
                 ldx #$0A                ; Set Front view
                 jsr SETVIEW             ;

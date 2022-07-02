@@ -1,6 +1,6 @@
 ;*******************************************************************************
 ;*                                                                             *
-;*                                 INITIALIZE                                  *
+;*                                 Initialize                                  *
 ;*                                                                             *
 ;*                          More game initialization                           *
 ;*                                                                             *
@@ -67,7 +67,7 @@
 ;
 ; (5)  Create Galactic Chart
 ;
-;      The Galactic Chart memory map GCMEMMAP ($08C9) is initialized. It
+;      The Galactic Chart memory map gcMemMap ($08C9) is initialized. It
 ;      represents 16 columns x 8 rows of sectors. Each sector contains one of
 ;      the 4 sector types stored in table SECTORTYPETAB ($BBA6) (starbase, 4
 ;      Zylon ships, 3 Zylon ships, and 2 or 1 Zylon ships), and empty sectors.
@@ -89,13 +89,19 @@
 ; (6)  Apply a final tweak
 ;
 ;      The last entry of lookup table MAPTOBCD99 ($0EE9) is tweaked to a value
-;      of CCS_INF * 16 + CCS_SPC. It is used to display an infinity symbol by
+;      of ccs_Inf * 16 + ccs_Spc. It is used to display an infinity symbol by
 ;      the RANGE readout of the Control Panel Display in subroutine SHOWCOORD
 ;      ($B8A7).
 ;
-; Code execution continues into subroutine DRAWGC ($B4B9), which draws the
+; Code execution continues into subroutine DrawGalacticChart ($B4B9), which draws the
 ; content of the Galactic Chart with characters from the custom character set.
 
+
+;======================================
+; Initialize Display List and copy
+; color table
+;======================================
+Initialize      .proc
 L_MEMPTR1       = $68                   ; 16-bit memory pointer
 L_MEMPTR2       = $6A                   ; 16-bit memory pointer
 L_SECTORTYPE    = $6A                   ; Saves sector type. Used values are:
@@ -104,23 +110,25 @@ L_SECTORTYPE    = $6A                   ; Saves sector type. Used values are:
                                         ;   $03 -> Sector contains 3 Zylon ships
                                         ;   $02 -> Sector contains 2 or 1 Zylon ships
 L_SECTORCNT     = $6B                   ; Saves number of sectors of the current sector type
+;---
 
-;*** Initialize Display List and copy color table ******************************
-INITIALIZE      ldx #89                 ; Set 89(+1) GRAPHICS7 rows from DSPLST+5 on
-LOOP060         lda #$0D                ; Prep DL instruction $0D (one row of GRAPHICS7)
+                ldx #89                 ; Set 89(+1) GRAPHICS7 rows from DSPLST+5 on
+_next1          lda #$0D                ; Prep DL instruction $0D (one row of GRAPHICS7)
                 sta DSPLST+5,X          ; DSPLST+5,X := one row of GRAPHICS7
                 cpx #10                 ;
-                bcs SKIP195             ;
+                bcs _1                  ;
+
                 lda PFCOLORTAB,X        ; Copy PLAYFIELD color table to zero page table
                 sta PF0COLOR,X          ; (loop jamming)
-SKIP195         dex                     ;
-                bpl LOOP060             ;
+_1              dex                     ;
+                bpl _next1              ;
 
-                lda #$70                ; DSPLST     := BLK8
+                lda #AEMPTY8            ; DSPLST     := BLK8
                 sta DSPLST              ; DSPLST+1   := BLK8
                 sta DSPLST+1            ;
-                lda #$41                ; DSPLST+103 := WAITJMP @ DSPLST
+                lda #AVB+AJMP           ; DSPLST+103 := WAITJMP @ DSPLST
                 sta DSPLST+103          ;
+
                 lda #<DSPLST            ;
                 sta DSPLST+104          ;
                 lda #>DSPLST            ;
@@ -134,7 +142,7 @@ SKIP195         dex                     ;
                 stx L_MEMPTR2+1         ;
 
 ;*** Calc MAPTO80 map (converts value of $00..$FF to value in 0..80) ***********
-LOOP061         clc                     ;
+_next2          clc                     ;
                 lda L_MEMPTR1           ;
                 adc #81                 ;
                 sta L_MEMPTR1           ;
@@ -155,7 +163,7 @@ LOOP061         clc                     ;
                 cld                     ;
                 sta L_MEMPTR2+1         ;
                 inx                     ;
-                bne LOOP061             ;
+                bne _next2              ;
 
 ;*** Calculate PLAYFIELD memory row addresses, copy Panel Display texts ********
                 ldx #<PFMEM             ; Point L_MEMPTR1 to start of PLAYFIELD memory
@@ -163,7 +171,7 @@ LOOP061         clc                     ;
                 lda #>PFMEM             ;
                 sta L_MEMPTR1+1         ;
 
-LOOP062         clc                     ;
+_next3          clc                     ;
                 lda L_MEMPTR1           ;
                 sta PFMEMROWLO,X        ; Store 16-bit value of L_MEMPTR1 in PFMEMROWHI/LO
                 adc #40                 ; Add 40 to L_MEMPTR
@@ -178,7 +186,7 @@ LOOP062         clc                     ;
 
                 inx                     ;
                 cpx #100                ;
-                bcc LOOP062             ; Loop 100 times
+                bcc _next3              ; Loop 100 times
 
 ;*** Set Zylon unit movement timer *********************************************
                 dex                     ;
@@ -186,10 +194,10 @@ LOOP062         clc                     ;
 
 ;*** Create memory map of the Galactic Chart ***********************************
                 ldx #3                  ; Loop over all 3(+1) sector types
-                stx GCMEMMAP+4*16+8     ; Block our starship's initial position at center of
+                stx gcMemMap+4*16+8     ; Block our starship's initial position at center of
                                         ; ...Galactic Chart (sector row 4, sector column 8)
 
-LOOP063         lda SECTORTYPETAB,X     ; Prep sector type
+_next4          lda SECTORTYPETAB,X     ; Prep sector type
                 sta L_SECTORTYPE        ;
 
                 ldy MISSIONLEVEL        ; Number sectors of current type := mission level + 2
@@ -197,67 +205,76 @@ LOOP063         lda SECTORTYPETAB,X     ; Prep sector type
                 iny                     ;
                 sty L_SECTORCNT         ;
 
-LOOP064         lda RANDOM              ; Load random sector 0..127 from GC memory map
+_next5          lda RANDOM              ; Load random sector 0..127 from GC memory map
                 and #$7F                ;
                 tay                     ;
-                lda GCMEMMAP,Y          ;
-                bne LOOP064             ; If sector already occupied, pick another
+                lda gcMemMap,Y          ;
+                bne _next5              ; If sector already occupied, pick another
 
                 lda L_SECTORTYPE        ; Reload sector type
-                bpl SKIP196             ; Skip if sector not to be occupied by starbase
+                bpl _2                  ; Skip if sector not to be occupied by starbase
 
                 cpy #$10                ; Place starbase...
-                bcc LOOP064             ; ...not in first sector row of Galactic Chart
+                bcc _next5              ; ...not in first sector row of Galactic Chart
+
                 cpy #$70                ;
-                bcs LOOP064             ; ...not in last sector row of Galactic Chart
+                bcs _next5              ; ...not in last sector row of Galactic Chart
+
                 tya                     ;
                 and #$0F                ;
-                beq LOOP064             ; ...not in first sector column of Galactic Chart
+                beq _next5              ; ...not in first sector column of Galactic Chart
+
                 cmp #15                 ;
-                beq LOOP064             ; ...not in last sector column of Galactic Chart
-                lda GCMEMMAP-1,Y        ; ...not east  of an occupied sector
-                ora GCMEMMAP+1,Y        ; ...not west  of an occupied sector
-                ora GCMEMMAP+16,Y       ; ...not south of an occupied sector
-                ora GCMEMMAP-16,Y       ; ...not north of an occupied sector
-                bne LOOP064             ;
+                beq _next5              ; ...not in last sector column of Galactic Chart
+
+                lda gcMemMap-1,Y        ; ...not east  of an occupied sector
+                ora gcMemMap+1,Y        ; ...not west  of an occupied sector
+                ora gcMemMap+16,Y       ; ...not south of an occupied sector
+                ora gcMemMap-16,Y       ; ...not north of an occupied sector
+                bne _next5              ;
 
                 lda L_SECTORTYPE        ; Reload sector type
 
-SKIP196         sta GCMEMMAP,Y          ; Store sector type in Galactic Chart memory map
+_2              sta gcMemMap,Y          ; Store sector type in Galactic Chart memory map
                 dec L_SECTORCNT         ;
-                bpl LOOP064             ; Next sector
+                bpl _next5              ; Next sector
+
                 dex                     ;
-                bpl LOOP063             ; Next sector type
+                bpl _next4              ; Next sector type
 
 ;*** Clear Galactic Chart and draw top border **********************************
                 ldx #180                ; Clear Galactic Chart PLAYFIELD
-LOOP065         lda #CCS_SPC            ;
-                sta GCPFMEM-1,X         ;
+_next6          lda #ccs_Spc            ;
+                sta gcPfMem-1,X         ;
                 dex                     ;
-                bne LOOP065             ;
+                bne _next6              ;
 
                 ldx #15                 ; Draw top border (15(+1) characters)
-LOOP066         lda #CCS_BORDERS        ;
-                sta GCPFMEM+2,X         ;
+_next7          lda #ccs_BorderS        ;
+                sta gcPfMem+2,X         ;
                 dex                     ;
-                bpl LOOP066             ;
+                bpl _next7              ;
 
-                lda #CCS_CORNERSW       ; Draw NORTHEAST corner (1 character)
-                sta GCPFMEM+18          ;
+                lda #ccs_CornerSW       ; Draw NORTHEAST corner (1 character)
+                sta gcPfMem+18          ;
 
                 lda #0                  ; Release starship's position at center of Galactic
-                sta GCMEMMAP+4*16+8     ; ...Chart (sector row 4, sector column 8)
+                sta gcMemMap+4*16+8     ; ...Chart (sector row 4, sector column 8)
 
 ;*** Initialize current sector and hyperwarp marker column and row numbers *****
                 lda #$48                ; Place our starship's current sector at
-                sta CURRSECTOR          ; ...sector row 4, sector column 8
+                sta vCurrentSector      ; ...sector row 4, sector column 8
                 lda #$43                ; Init departure & arrival hyperwarp marker column
-                sta WARPDEPRCOLUMN      ;
-                sta WARPARRVCOLUMN      ;
+                sta vWarpDeprColumn     ;
+                sta vWarpArrvColumn     ;
                 lda #$47                ; Init departure & arrival hyperwarp marker row
-                sta WARPARRVROW         ;
-                sta WARPDEPRROW         ;
+                sta vWarpArrvRow        ;
+                sta vWarpDeprRow        ;
 
 ;*** Tweak last entry of MAPTOBCD99 ********************************************
-                lda #CCS_INF*16+CCS_SPC ; Last entry of MAPTOBCD99: 'INFINITY'+'SPACE' char
+                lda #ccs_Inf*16+ccs_Spc ; Last entry of MAPTOBCD99: 'INFINITY'+'SPACE' char
                 sta MAPTOBCD99+255      ;
+
+                .endproc
+
+                ;[fall-through]         ; > galactic chart draw

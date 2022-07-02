@@ -167,7 +167,7 @@ HYPERWARP       ldy WARPSTATE           ; Return if hyperwarp not engaged
 SKIP063         lda #3                  ; Track Hyperwarp Target Marker (PLAYER3)
                 sta TRACKDIGIT          ;
 
-                lda #SHAP_HYPERWARP     ; PLAYER3 is HYPERWARP TARGET MARKER (shape type 9)
+                lda #shapeHYPERWARP     ; PLAYER3 is HYPERWARP TARGET MARKER (shape type 9)
                 sta PL3SHAPTYPE         ;
                 sta PL3LIFE             ; PLAYER3 lifetime := 144 game loops
 
@@ -175,20 +175,20 @@ SKIP063         lda #3                  ; Track Hyperwarp Target Marker (PLAYER3
                 sta PL3ZPOSHI           ;
 
                 sec                     ; New arrival hyperwarp marker row number is...
-                lda PL3ROWNEW           ; WARPARRVROW := WARPTEMPROW + PL3ROWNEW...
+                lda PL3ROWNEW           ; vWarpArrvRow := WARPTEMPROW + PL3ROWNEW...
                 sbc #119                ; ... - 119 PM pixels (top edge of centered...
                 clc                     ; ...Hyperwarp Target Marker)
                 adc WARPTEMPROW         ;
-                and #$7F                ; Limit WARPARRVROW to 0..127
-                sta WARPARRVROW         ;
+                and #$7F                ; Limit vWarpArrvRow to 0..127
+                sta vWarpArrvRow        ;
 
                 sec                     ; New arrival hyperwarp marker column number is...
-                lda PL3COLUMN           ; WARPARRVCOLUMN := WARPTEMPCOLUMN + PL3COLUMN...
+                lda PL3COLUMN           ; vWarpArrvColumn := WARPTEMPCOLUMN + PL3COLUMN...
                 sbc #125                ; ... - 125 PM pixels (left edge of centered...
                 clc                     ; ...Hyperwarp Target Marker)
                 adc WARPTEMPCOLUMN      ;
-                and #$7F                ; Limit WARPARRVCOLUMN to 0..127
-                sta WARPARRVCOLUMN      ;
+                and #$7F                ; Limit vWarpArrvColumn to 0..127
+                sta vWarpArrvColumn     ;
 
                 lda MISSIONLEVEL        ; Skip if NOVICE mission
                 beq SKIP065             ;
@@ -242,10 +242,10 @@ SKIP068         dec WARPENERGY          ; Decrement energy in chunks of 10 energ
 SKIP069         ldy #$19                ; Prep title phrase "HYPERWARP COMPLETE"
                 jsr ENDWARP             ; Stop our starship
 
-                lda WARPARRVCOLUMN      ; Make the arrival hyperwarp marker column number...
-                sta WARPDEPRCOLUMN      ; ...the departure hyperwarp marker column number
-                lda WARPARRVROW         ; Make the arrival hyperwarp marker row number...
-                sta WARPDEPRROW         ; ...the departure hyperwarp marker row number
+                lda vWarpArrvColumn     ; Make the arrival hyperwarp marker column number...
+                sta vWarpDeprColumn     ; ...the departure hyperwarp marker column number
+                lda vWarpArrvRow        ; Make the arrival hyperwarp marker row number...
+                sta vWarpDeprRow        ; ...the departure hyperwarp marker row number
 
                 lsr A                   ; B3..1 of arrival hyperwarp marker row number...
                 and #$07                ; ...pick vicinity mask
@@ -254,13 +254,13 @@ SKIP069         ldy #$19                ; Prep title phrase "HYPERWARP COMPLETE"
                 sta VICINITYMASK        ; Store vicinity mask (limits space obj coordinates)
 
                 ldy ARRVSECTOR          ; Make the arrival sector the current sector
-                sty CURRSECTOR          ;
+                sty vCurrentSector      ;
 
 ;*** Init starbase in arrival sector *******************************************
                 lda #0                  ; Clear starbase-in-sector flag
                 sta ISSTARBASESECT      ;
 
-                ldx GCMEMMAP,Y          ; Skip if no starbase in arrival sector
+                ldx gcMemMap,Y          ; Skip if no starbase in arrival sector
                 bpl SKIP070             ;
 
                 lda #$FF                ; Set starbase-in-sector flag

@@ -26,11 +26,11 @@
 ;       0 -> Sector is not surrounded
 ;     > 0 -> Sector is surrounded
 
-ISSURROUNDED    lda GCMEMMAP-1,X        ; Check WEST sector
+ISSURROUNDED    lda gcMemMap-1,X        ; Check WEST sector
                 beq SKIP239             ;
-                lda GCMEMMAP+1,X        ; Check EAST sector
+                lda gcMemMap+1,X        ; Check EAST sector
                 beq SKIP239             ;
-                lda GCMEMMAP-16,X       ; Check NORTH sector
+                lda gcMemMap-16,X       ; Check NORTH sector
                 beq SKIP239             ;
-                lda GCMEMMAP+16,X       ; Check SOUTH sector
+                lda gcMemMap+16,X       ; Check SOUTH sector
 SKIP239         rts                     ; Return

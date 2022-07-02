@@ -608,7 +608,7 @@ o   Velocity vectors 5..48 belong to space objects represented by PLAYFIELD
           Lifetime of red alert. It decreases from 255 to 0. It is decremented
           every game loop iteration.
 
- $8C      WARPDEPRROW
+ $8C      vWarpDeprRow
 
           Departure hyperwarp marker row number on the Galactic Chart. It is
           given in Player/Missile pixels relative to the top Galactic Chart
@@ -616,7 +616,7 @@ o   Velocity vectors 5..48 belong to space objects represented by PLAYFIELD
           Galactic Chart). Divide this value by 16 to get the departure sector
           row number. Used values are: $00..$7F.
 
- $8D      WARPDEPRCOLUMN
+ $8D      vWarpDeprColumn
 
           Departure hyperwarp marker column number on the Galactic Chart. It is
           given in Player/Missile pixels relative to the left Galactic Chart
@@ -624,7 +624,7 @@ o   Velocity vectors 5..48 belong to space objects represented by PLAYFIELD
           Galactic Chart). Divide this value by 8 to get the departure sector
           column number. Used values are: $00..$7F.
 
- $8E      WARPARRVROW
+ $8E      vWarpArrvRow
 
           Arrival hyperwarp marker row number on the Galactic Chart in
           Player/Missile pixels relative to top Galactic Chart border. It is
@@ -632,7 +632,7 @@ o   Velocity vectors 5..48 belong to space objects represented by PLAYFIELD
           Divide this value by 16 to get the arrival sector row number. Used
           values are: $00..$7F. 
 
- $8F      WARPARRVCOLUMN
+ $8F      vWarpArrvColumn
 
           Arrival hyperwarp marker column number on the Galactic Chart in
           Player/Missile pixels relative to left Galactic Chart border. It is
@@ -640,7 +640,7 @@ o   Velocity vectors 5..48 belong to space objects represented by PLAYFIELD
           Divide this value by 8 to get the arrival sector column number. Used
           values are: $00..$7F. 
 
- $90      CURRSECTOR
+ $90      vCurrentSector
 
           Galactic Chart sector of the current location of our starship. At the
           start of the game it is initialized to a value of $48. Used values
@@ -669,7 +669,7 @@ o   Velocity vectors 5..48 belong to space objects represented by PLAYFIELD
             $70 -> SOUTHWEST corner sector
             $7F -> SOUTHWEST corner sector
 
-          See also CURRSECTOR ($90). 
+          See also vCurrentSector ($90). 
 
  $93      HUNTSECTOR
 
@@ -953,7 +953,7 @@ o   Velocity vectors 5..48 belong to space objects represented by PLAYFIELD
           at the beginning of hyperspace. It is given in Player/Missile pixels
           relative to the left Galactic Chart border. Divide this value by 8 to
           get the sector column number. Used values are: $00..$7F. See also
-          WARPARRVCOLUMN ($8F).
+          vWarpArrvColumn ($8F).
 
  $C5      WARPTEMPROW
 
@@ -961,7 +961,7 @@ o   Velocity vectors 5..48 belong to space objects represented by PLAYFIELD
           the beginning of hyperspace. It is given in Player/Missile pixels
           relative to top Galactic Chart border. Divide this value by 16 to get
           the sector row number.  Used values are: $00..$7F. See also
-          WARPARRVROW ($8E).
+          vWarpArrvRow ($8E).
 
  $C6      VEERMASK
 
@@ -1342,7 +1342,7 @@ o   Velocity vectors 5..48 belong to space objects represented by PLAYFIELD
               Lookup table of start addresses (high byte) of each row of
               PLAYFIELD memory. See also PFMEMROWLO ($0800).
 
- $08C9..$0948 GCMEMMAP
+ $08C9..$0948 gcMemMap
 
               Galactic Chart memory map (16 columns x 8 rows = 128 bytes)
 
@@ -2146,7 +2146,7 @@ o   Velocity vectors 5..48 belong to space objects represented by PLAYFIELD
 
               Title text line, contains ATASCII-coded characters (20 bytes)
 
- $0D35..$0DE8 GCPFMEM
+ $0D35..$0DE8 gcPfMem
 
               Galactic Chart PLAYFIELD memory (20 characters x 9 rows = 180
               bytes)

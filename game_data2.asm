@@ -664,115 +664,115 @@ WARPSTARYTAB    .byte $02                             ;  +512..+767  (+$02**) <K
 ; Row 1: "V:00 K:00 E:9999 T:0"
 ; Row 2: " O:-00 O:-00 R:-000 "
 
-PANELTXTTAB     .byte CCS_V
-                .byte CCS_COLON
-                .byte CCS_0
-                .byte CCS_0
-                .byte CCS_SPC
-                .byte CCS_COL1|CCS_K
-                .byte CCS_COL1|CCS_COLON
-                .byte CCS_COL1|CCS_0
-                .byte CCS_COL1|CCS_0
-                .byte CCS_SPC
-                .byte CCS_COL2|CCS_E
-                .byte CCS_COL2|CCS_COLON
-                .byte CCS_COL2|CCS_9
-                .byte CCS_COL2|CCS_9
-                .byte CCS_COL2|CCS_9
-                .byte CCS_COL2|CCS_9
-                .byte CCS_SPC
-                .byte CCS_T
-                .byte CCS_COLON
-                .byte CCS_0
+PANELTXTTAB     .byte ccs_V
+                .byte ccs_Colon
+                .byte ccs_0
+                .byte ccs_0
+                .byte ccs_Spc
+                .byte ccs_Col1|ccs_K
+                .byte ccs_Col1|ccs_Colon
+                .byte ccs_Col1|ccs_0
+                .byte ccs_Col1|ccs_0
+                .byte ccs_Spc
+                .byte ccs_Col2|ccs_E
+                .byte ccs_Col2|ccs_Colon
+                .byte ccs_Col2|ccs_9
+                .byte ccs_Col2|ccs_9
+                .byte ccs_Col2|ccs_9
+                .byte ccs_Col2|ccs_9
+                .byte ccs_Spc
+                .byte ccs_T
+                .byte ccs_Colon
+                .byte ccs_0
 
-                .byte CCS_SPC
-                .byte CCS_THETA
-                .byte CCS_COLON
-                .byte CCS_MINUS
-                .byte CCS_0
-                .byte CCS_0
-                .byte CCS_SPC
-                .byte CCS_COL1|CCS_PHI
-                .byte CCS_COL1|CCS_COLON
-                .byte CCS_MINUS
-                .byte CCS_0
-                .byte CCS_0
-                .byte CCS_SPC
-                .byte CCS_COL2|CCS_R
-                .byte CCS_COL2|CCS_COLON
-                .byte CCS_MINUS
-                .byte CCS_0
-                .byte CCS_0
-                .byte CCS_0
-                .byte CCS_SPC
+                .byte ccs_Spc
+                .byte ccs_Theta
+                .byte ccs_Colon
+                .byte ccs_Minus
+                .byte ccs_0
+                .byte ccs_0
+                .byte ccs_Spc
+                .byte ccs_Col1|CCS_PHI
+                .byte ccs_Col1|ccs_Colon
+                .byte ccs_Minus
+                .byte ccs_0
+                .byte ccs_0
+                .byte ccs_Spc
+                .byte ccs_Col2|ccs_R
+                .byte ccs_Col2|ccs_Colon
+                .byte ccs_Minus
+                .byte ccs_0
+                .byte ccs_0
+                .byte ccs_0
+                .byte ccs_Spc
 
 ;*** Text of Galactic Chart Panel Display **************************************
 ; Row 1: "WARP ENERGY:   0    "
 ; Row 2: "TARGETS:  DC:PESCLR "
 ; Row 3: "STAR DATE:00.00     "
 
-                .byte ROM_W
-                .byte ROM_A
-                .byte ROM_R
-                .byte ROM_P
-                .byte ROM_SPC
-                .byte ROM_E
-                .byte ROM_N
-                .byte ROM_E
-                .byte ROM_R
-                .byte ROM_G
-                .byte ROM_Y
-                .byte ROM_COLON
-                .byte ROM_SPC
-                .byte ROM_SPC
-                .byte ROM_SPC
-                .byte ROM_0
-                .byte ROM_SPC
-                .byte ROM_SPC
-                .byte ROM_SPC
-                .byte ROM_SPC
+                .byte rom_W
+                .byte rom_A
+                .byte rom_R
+                .byte rom_P
+                .byte rom_Spc
+                .byte rom_E
+                .byte rom_N
+                .byte rom_E
+                .byte rom_R
+                .byte rom_G
+                .byte rom_Y
+                .byte rom_Colon
+                .byte rom_Spc
+                .byte rom_Spc
+                .byte rom_Spc
+                .byte rom_0
+                .byte rom_Spc
+                .byte rom_Spc
+                .byte rom_Spc
+                .byte rom_Spc
 
-                .byte CCS_COL2|ROM_T
-                .byte CCS_COL2|ROM_A
-                .byte CCS_COL2|ROM_R
-                .byte CCS_COL2|ROM_G
-                .byte CCS_COL2|ROM_E
-                .byte CCS_COL2|ROM_T
-                .byte CCS_COL2|ROM_S
-                .byte CCS_COL2|ROM_COLON
-                .byte ROM_SPC
-                .byte ROM_SPC
-                .byte ROM_D
-                .byte ROM_C
-                .byte ROM_COLON
-                .byte ROM_P
-                .byte ROM_E
-                .byte ROM_S
-                .byte ROM_C
-                .byte ROM_L
-                .byte ROM_R
-                .byte ROM_SPC
+                .byte ccs_Col2|rom_T
+                .byte ccs_Col2|rom_A
+                .byte ccs_Col2|rom_R
+                .byte ccs_Col2|rom_G
+                .byte ccs_Col2|rom_E
+                .byte ccs_Col2|rom_T
+                .byte ccs_Col2|rom_S
+                .byte ccs_Col2|rom_Colon
+                .byte rom_Spc
+                .byte rom_Spc
+                .byte rom_D
+                .byte rom_C
+                .byte rom_Colon
+                .byte rom_P
+                .byte rom_E
+                .byte rom_S
+                .byte rom_C
+                .byte rom_L
+                .byte rom_R
+                .byte rom_Spc
 
-                .byte CCS_COL3|ROM_S
-                .byte CCS_COL3|ROM_T
-                .byte CCS_COL3|ROM_A
-                .byte CCS_COL3|ROM_R
-                .byte ROM_SPC
-                .byte CCS_COL3|ROM_D
-                .byte CCS_COL3|ROM_A
-                .byte CCS_COL3|ROM_T
-                .byte CCS_COL3|ROM_E
-                .byte CCS_COL3|ROM_COLON
-                .byte CCS_COL3|ROM_0
-                .byte CCS_COL3|ROM_0
-                .byte CCS_COL3|ROM_DOT
-                .byte CCS_COL3|ROM_0
-                .byte CCS_COL3|ROM_0
-                .byte ROM_SPC
-                .byte ROM_SPC
-                .byte ROM_SPC
-                .byte ROM_SPC
-                .byte ROM_SPC
+                .byte ccs_Col3|rom_S
+                .byte ccs_Col3|rom_T
+                .byte ccs_Col3|rom_A
+                .byte ccs_Col3|rom_R
+                .byte rom_Spc
+                .byte ccs_Col3|rom_D
+                .byte ccs_Col3|rom_A
+                .byte ccs_Col3|rom_T
+                .byte ccs_Col3|rom_E
+                .byte ccs_Col3|rom_Colon
+                .byte ccs_Col3|rom_0
+                .byte ccs_Col3|rom_0
+                .byte ccs_Col3|rom_Dot
+                .byte ccs_Col3|rom_0
+                .byte ccs_Col3|rom_0
+                .byte rom_Spc
+                .byte rom_Spc
+                .byte rom_Spc
+                .byte rom_Spc
+                .byte rom_Spc
 
 ;*** Galactic Chart sector type table ******************************************
 SECTORTYPETAB   .byte $CF                             ; Starbase
@@ -1281,12 +1281,12 @@ TRACKKEYSTAB    .byte $F8                             ; 'F' - Front view
                 .byte $FF                             ; 'A' - Aft view
 
 ;*** Galactic Chart sector character codes (encoded in custom character set) ***
-SECTORCHARTAB   .byte CCS_BORDERSW                    ; Empty sector
-                .byte CCS_2ZYLONS                     ; Sector contains 1 Zylon ship
-                .byte CCS_2ZYLONS                     ; Sector contains 2 Zylon ships
-                .byte CCS_3ZYLONS                     ; Sector contains 3 Zylon ships
-                .byte CCS_4ZYLONS                     ; Sector contains 4 Zylon ships
-                .byte CCS_STARBASE                    ; Sector contains starbase
+SECTORCHARTAB   .byte ccs_BorderSW                    ; Empty sector
+                .byte ccs_2Zylons                     ; Sector contains 1 Zylon ship
+                .byte ccs_2Zylons                     ; Sector contains 2 Zylon ships
+                .byte ccs_3Zylons                     ; Sector contains 3 Zylon ships
+                .byte ccs_4Zylons                     ; Sector contains 4 Zylon ships
+                .byte ccs_Starbase                    ; Sector contains starbase
 
 ;*** Mask to limit veer-off velocity of Hyperwarp Target Marker in hyperwarp ***
 VEERMASKTAB     .byte NEG|31                          ;  -31..+31  <KM/H> (unused)
@@ -1336,22 +1336,22 @@ RANKTAB         .byte $29|EOS                         ; "GALACTIC COOK"
                 .byte $39|EOS                         ; "STAR COMMANDER"
 
 ;*** Scored class number table *************************************************
-CLASSTAB        .byte CCS_COL2|ROM_5                  ; Class 5
-                .byte CCS_COL2|ROM_5                  ; Class 5
-                .byte CCS_COL2|ROM_5                  ; Class 5
-                .byte CCS_COL2|ROM_4                  ; Class 4
-                .byte CCS_COL2|ROM_4                  ; Class 4
-                .byte CCS_COL2|ROM_4                  ; Class 4
-                .byte CCS_COL2|ROM_4                  ; Class 4
-                .byte CCS_COL2|ROM_3                  ; Class 3
-                .byte CCS_COL2|ROM_3                  ; Class 3
-                .byte CCS_COL2|ROM_3                  ; Class 3
-                .byte CCS_COL2|ROM_2                  ; Class 2
-                .byte CCS_COL2|ROM_2                  ; Class 2
-                .byte CCS_COL2|ROM_2                  ; Class 2
-                .byte CCS_COL2|ROM_1                  ; Class 1
-                .byte CCS_COL2|ROM_1                  ; Class 1
-                .byte CCS_COL2|ROM_1                  ; Class 1
+CLASSTAB        .byte ccs_Col2|rom_5                  ; Class 5
+                .byte ccs_Col2|rom_5                  ; Class 5
+                .byte ccs_Col2|rom_5                  ; Class 5
+                .byte ccs_Col2|rom_4                  ; Class 4
+                .byte ccs_Col2|rom_4                  ; Class 4
+                .byte ccs_Col2|rom_4                  ; Class 4
+                .byte ccs_Col2|rom_4                  ; Class 4
+                .byte ccs_Col2|rom_3                  ; Class 3
+                .byte ccs_Col2|rom_3                  ; Class 3
+                .byte ccs_Col2|rom_3                  ; Class 3
+                .byte ccs_Col2|rom_2                  ; Class 2
+                .byte ccs_Col2|rom_2                  ; Class 2
+                .byte ccs_Col2|rom_2                  ; Class 2
+                .byte ccs_Col2|rom_1                  ; Class 1
+                .byte ccs_Col2|rom_1                  ; Class 1
+                .byte ccs_Col2|rom_1                  ; Class 1
 
 ;*** Title phrase offsets of mission level *************************************
 MISSIONPHRTAB   .byte $4A                             ; "NOVICE MISSION"
@@ -1530,14 +1530,14 @@ ZYLONHOMVELTAB  .byte NEG|1                           ;  -1 <KM/H> NOVICE missio
                 .byte NEG|20                          ; -20 <KM/H> COMMANDER mission
 
 ;*** Zylon shape type table ****************************************************
-ZYLONSHAPTAB    .byte SHAP_ZBASESTAR                  ; ZYLON BASESTAR
-                .byte SHAP_ZFIGHTER                   ; ZYLON FIGHTER
-                .byte SHAP_ZFIGHTER                   ; ZYLON FIGHTER
-                .byte SHAP_ZFIGHTER                   ; ZYLON FIGHTER
-                .byte SHAP_ZCRUISER                   ; ZYLON CRUISER
-                .byte SHAP_ZCRUISER                   ; ZYLON CRUISER
-                .byte SHAP_ZCRUISER                   ; ZYLON CRUISER
-                .byte SHAP_ZFIGHTER                   ; ZYLON FIGHTER
+ZYLONSHAPTAB    .byte shapeZBASESTAR                  ; ZYLON BASESTAR
+                .byte shapeZFIGHTER                   ; ZYLON FIGHTER
+                .byte shapeZFIGHTER                   ; ZYLON FIGHTER
+                .byte shapeZFIGHTER                   ; ZYLON FIGHTER
+                .byte shapeZCRUISER                   ; ZYLON CRUISER
+                .byte shapeZCRUISER                   ; ZYLON CRUISER
+                .byte shapeZCRUISER                   ; ZYLON CRUISER
+                .byte shapeZFIGHTER                   ; ZYLON FIGHTER
 
 ;*** Zylon flight pattern table ************************************************
 ZYLONFLPATTAB   .byte 4                               ; Flight pattern 4

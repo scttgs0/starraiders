@@ -88,7 +88,7 @@ SKIP242         ldy #VELOCD1-PANELTXT-1 ; Update digits of VELOCITY readout
 
                 lda RANGEC1+2           ; Hack to clear RANGE digit 3 when in hyperwarp:
                 sta RANGEC1+3           ; Copy RANGE digit 2 to digit 3
-                cmp #CCS_9+1            ; Skip if digit character > '9' (= 'infinity' char)
+                cmp #ccs_9+1            ; Skip if digit character > '9' (= 'infinity' char)
                 bcs SKIP243             ;
 
                 ldx TRACKDIGIT          ; Get z-coordinate (low byte) of tracked space object
@@ -142,9 +142,9 @@ DECENERGY       bit ISDEMOMODE          ; Return if in demo mode
 
                 dec ENERGYD1,X          ; Decrement energy digit character
                 lda ENERGYD1,X          ;
-                cmp #CCS_COL2|CCS_0     ;
+                cmp #ccs_Col2|ccs_0     ;
                 bcs SKIP246             ; Return if digit character >= '0'
-                lda #CCS_COL2|CCS_9     ;
+                lda #ccs_Col2|ccs_9     ;
                 sta ENERGYD1,X          ; Store digit character '9'
 
 ;*** Decrement score when crossing a 100-energy-unit boundary while subtracting 
@@ -160,7 +160,7 @@ SKIP245         dex                     ;
                 bpl DECENERGY           ; Next digit
 
 ;*** Energy is zero, game over *************************************************
-                ldx #CCS_SPC            ; Clear 4-digit ENERGY readout
+                ldx #ccs_Spc            ; Clear 4-digit ENERGY readout
                 txa                     ;
                 ldy #3                  ;
 LOOP079         sta ENERGYD1,Y          ;
@@ -196,8 +196,8 @@ SKIP246         rts                     ; Return
 ; NOTE: If the digits of either the THETA or PHI readout are to be displayed and
 ; the x or y position vector component (high byte) is $FF then tweak the value
 ; to $FE. This avoids accessing table MAPTOBCD99 ($0EE9) with an index of $FF
-; that would return the special value $EA. This value represents the CCS_INF
-; ($0E) and CCS_SPC ($0A) characters (see comments in subroutine INITIALIZE
+; that would return the special value $EA. This value represents the ccs_Inf
+; ($0E) and ccs_Spc ($0A) characters (see comments in subroutine Initialize
 ; ($B3BA)) that are displayed by the RANGE readout only.
 ;
 ; INPUT
@@ -222,7 +222,7 @@ SHOWCOORD       clc                     ; Add index of tracked space object...
                 tax                     ; Save position vector component index
 
 ;*** Display sign in Control Panel Display *************************************
-                lda #CCS_PLUS           ; Save '+' (CCS_PLUS) to sign character
+                lda #ccs_Plus           ; Save '+' (ccs_Plus) to sign character
                 sta L_SIGNCHAR          ;
 
                 lda ZPOSSIGN,X          ; Prep sign of coordinate
@@ -231,7 +231,7 @@ SHOWCOORD       clc                     ; Add index of tracked space object...
                 bcs SKIP247             ; Skip if sign is positive
 
                 eor #$FF                ; Invert coordinate (high byte)
-                dec L_SIGNCHAR          ; Change saved sign character to '-' (CCS_MINUS)
+                dec L_SIGNCHAR          ; Change saved sign character to '-' (ccs_Minus)
 
 SKIP247         tax                     ; Save coordinate (high byte)
                 lda L_SIGNCHAR          ; Store sign character in Control Panel Display

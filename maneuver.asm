@@ -441,7 +441,7 @@ SKIP090         lda RANDOM              ; Return in 98% (252:256) (do not create
                 bcs SKIP091             ;
 
 ;*** Create new meteor! ********************************************************
-                lda #SHAP_METEOR        ; PLAYER2 is METEOR (shape type 6)
+                lda #shapeMETEOR        ; PLAYER2 is METEOR (shape type 6)
                 sta PL2SHAPTYPE         ;
                 ldx #2                  ; Randomize position vector of meteor
                 jsr INITPOSVEC          ;
@@ -468,8 +468,8 @@ SKIP092         lda CTRLDZYLON          ; Toggle control to the other Zylon ship
                 lda PL0LIFE             ; If both Zylon ships are not alive...
                 ora PL1LIFE             ;
                 and #$01                ;
-                ldy CURRSECTOR          ; ...and this an empty sector...
-                cmp GCMEMMAP,Y          ;
+                ldy vCurrentSector      ; ...and this an empty sector...
+                cmp gcMemMap,Y          ;
                 bcs SKIP089             ; ...attempt to create meteor and return
 
 ;*** Create a new Zylon ship! **************************************************

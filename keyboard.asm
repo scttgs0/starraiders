@@ -167,7 +167,7 @@ SKIP153         jsr SETTITLE            ; Set title phrase to "... ON" or "... O
                 jsr BEEP                ;
 
 ;*** Update PLAYFIELD (Cross hairs, Attack Computer, set tracking letter) ******
-UPDSCREEN       ldx #CCS_T              ; Get custom char 'T' (entry point TRANSFER COMPLETE)
+UPDSCREEN       ldx #ccs_T              ; Get custom char 'T' (entry point TRANSFER COMPLETE)
                 ldy ISTRACKCOMPON       ;
                 beq SKIP154             ; Skip if Tracking Computer is on
 
@@ -215,9 +215,9 @@ SKIP156         cpx #17                 ; Skip if keyboard code does not match
                 sta PL3YPOSSIGN         ;
                 sta PL3YPOSHI           ;
 
-                lda WARPARRVCOLUMN      ; Store temp arrival hyperwarp marker column number
+                lda vWarpArrvColumn     ; Store temp arrival hyperwarp marker column number
                 sta WARPTEMPCOLUMN      ;
-                lda WARPARRVROW         ; Store temp arrival hyperwarp marker row number
+                lda vWarpArrvRow        ; Store temp arrival hyperwarp marker row number
                 sta WARPTEMPROW         ;
 
                 lda MISSIONLEVEL        ; Skip if NOVICE mission

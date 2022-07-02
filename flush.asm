@@ -153,7 +153,7 @@ FLUSHGAMELOOP   inc COUNT256            ; Increment COUNT256 counter
                 bpl SKIP198             ; Skip if counter < 128.
 
                 ldy ENERGYD1            ; When energy drops below 1000 units...
-                cpy #CCS_COL2|CCS_0     ;
+                cpy #ccs_Col2|ccs_0     ;
                 bne SKIP198             ;
                 ldx #$44                ; ...prep new DLI background color {PINK}
 
@@ -227,9 +227,9 @@ SKIP206         dec CLOCKTIM            ; Decrement stardate clock timer
                 ldx #4                  ; Increment stardate clock of Galactic Chart Panel
 LOOP069         inc GCSTARDAT,X         ;
                 lda GCSTARDAT,X         ;
-                cmp #(CCS_COL3|ROM_9)+1 ;
+                cmp #(ccs_Col3|rom_9)+1 ;
                 bcc SKIP208             ;
-                lda #(CCS_COL3|ROM_0)   ;
+                lda #(ccs_Col3|rom_0)   ;
                 sta GCSTARDAT,X         ;
                 cpx #3                  ;
                 bne SKIP207             ;
@@ -257,7 +257,7 @@ SKIP211         dec SCORE               ;
 
 ;*** Is starbase surrounded? ***************************************************
                 stx L_ISDESTROYED       ; Init L_ISDESTROYED with 0 (starbase not destroyed)
-LOOP070         lda GCMEMMAP,X          ; Loop over all sectors, load sector type
+LOOP070         lda gcMemMap,X          ; Loop over all sectors, load sector type
                 bpl SKIP212             ; Skip if not a starbase sector
 
                 jsr ISSURROUNDED        ; Skip if starbase sector not completely surrounded
@@ -265,7 +265,7 @@ LOOP070         lda GCMEMMAP,X          ; Loop over all sectors, load sector typ
 
 ;*** Starbase is surrounded, destroy starbase **********************************
                 lda #2                  ; Replace starbase sector with 2-Zylon sector
-                sta GCMEMMAP,X          ;
+                sta gcMemMap,X          ;
                 sta L_ISDESTROYED       ; Flag destruction of starbase
 
                 sec                     ; SCORE := SCORE - 18
@@ -297,7 +297,7 @@ SKIP213         dec HUNTTIM             ; Decrement hunting timer
                 bmi SKIP214             ; If timer < 0 decide which starbase to hunt
 
                 ldx HUNTSECTOR          ; Skip if Zylon units already picked starbase to hunt
-                lda GCMEMMAP,X          ;
+                lda gcMemMap,X          ;
                 bmi SKIP215             ;
 
 SKIP214         lda #7                  ; Reset hunting timer
@@ -307,13 +307,13 @@ SKIP214         lda #7                  ; Reset hunting timer
 LOOP071         lda RANDOM              ;
                 and #$7F                ;
                 tax                     ;
-                lda GCMEMMAP,X          ; Skip if starbase sector found
+                lda gcMemMap,X          ; Skip if starbase sector found
                 bmi SKIP215             ;
                 dey                     ;
                 bpl LOOP071             ; Next sector
 
                 ldx #127                ; Loop over all sectors of the Galactic Chart
-LOOP072         lda GCMEMMAP,X          ;
+LOOP072         lda gcMemMap,X          ;
                 bmi SKIP215             ; Skip if starbase sector found
                 dex                     ;
                 bpl LOOP072             ; Next sector
@@ -339,9 +339,9 @@ LOOP073         inx                     ; Loop over all sectors to move Zylon un
 
 ;*** Strip marker bits from moved Zylon units **********************************
                 ldx #0                  ;
-LOOP074         lda GCMEMMAP,X          ; Loop over all sectors
+LOOP074         lda gcMemMap,X          ; Loop over all sectors
                 and #$DF                ;
-                sta GCMEMMAP,X          ; Strip marker bit B5 from moved Zylon units
+                sta gcMemMap,X          ; Strip marker bit B5 from moved Zylon units
                 inx                     ;
                 bpl LOOP074             ; Next sector
 
@@ -350,7 +350,7 @@ LOOP074         lda GCMEMMAP,X          ; Loop over all sectors
                 bvs SKIP217             ;
 
                 ldx #0                  ; Loop over all sectors
-LOOP075         lda GCMEMMAP,X          ;
+LOOP075         lda gcMemMap,X          ;
                 bpl SKIP216             ; Skip if not a starbase sector
                 jsr ISSURROUNDED        ; Skip if starbase not surrounded
                 beq SKIP216             ;
@@ -370,7 +370,7 @@ SKIP216         inx                     ;
 SKIP217         rts                     ; Return
 
 ;*** Move single Zylon unit ****************************************************
-SKIP218         ldy GCMEMMAP,X          ; X contains current sector
+SKIP218         ldy gcMemMap,X          ; X contains current sector
                 cpy #$0A                ; Next sector if it has marker bit B5 set (!)
                 bcs LOOP073             ;
 
@@ -378,7 +378,7 @@ SKIP218         ldy GCMEMMAP,X          ; X contains current sector
                 cmp MOVEPROBTAB,Y       ; Get movement probability
                 bcs LOOP073             ; Next sector if movement probability < random number
 
-                cpx CURRSECTOR          ; Next sector if this is our starship's sector
+                cpx vCurrentSector      ; Next sector if this is our starship's sector
                 beq LOOP073             ;
 
 ;*** Compute distance to starbase by moving Zylon unit into 9 directions *******
@@ -428,17 +428,17 @@ LOOP078         lda NEWZYLONDIST,Y      ; Loop over all 7(+1) compass rose direc
 
                 sty L_DIRECTIONIND      ; Save compass rose direction index
                 tay                     ;
-                lda GCMEMMAP,Y          ;
+                lda gcMemMap,Y          ;
                 bne SKIP221             ; Next direction if new sector not empty
 
-                lda GCMEMMAP,X          ; Preload Zylon sector type to be moved
-                cpy CURRSECTOR          ;
+                lda gcMemMap,X          ; Preload Zylon sector type to be moved
+                cpy vCurrentSector      ;
                 beq SKIP221             ; Next direction if sector is our starship's sector
 
                 ora #$20                ; New sector for Zylon unit found!
-                sta GCMEMMAP,Y          ; Temporarily mark that sector with marker bit B5
+                sta gcMemMap,Y          ; Temporarily mark that sector with marker bit B5
                 lda #0                  ;
-                sta GCMEMMAP,X          ; Clear old Zylon unit sector
+                sta gcMemMap,X          ; Clear old Zylon unit sector
                 beq SKIP223             ; Next sector (unconditional branch)
 
 SKIP221         ldy L_DIRECTIONIND      ; Restore compass rose direction index

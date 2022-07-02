@@ -165,17 +165,17 @@ SKIP112         lda #2                  ; Track starbase (PLAYER2)
                 sta TRACKDIGIT          ;
 
 ;** Initialize starbase shape **************************************************
-                lda #SHAP_STARBASEC     ; PLAYER2 is STARBASE CENTER (shape type 3)
+                lda #shapeSTARBASEC     ; PLAYER2 is STARBASE CENTER (shape type 3)
                 sta PL2SHAPTYPE         ;
-                lda #SHAP_STARBASEL     ; PLAYER1 is STARBASE LEFT (shape type 2)
+                lda #shapeSTARBASEL     ; PLAYER1 is STARBASE LEFT (shape type 2)
                 sta PL1SHAPTYPE         ;
-                lda #SHAP_STARBASER     ; PLAYER0 is STARBASE RIGHT (shape type 4)
+                lda #shapeSTARBASER     ; PLAYER0 is STARBASE RIGHT (shape type 4)
                 sta PL0SHAPTYPE         ;
 
                 lda #255                ; Prep starbase lifetime := 255 game loops (infinite)
 
-                ldx CURRSECTOR          ; Skip if starbase in current sector
-                ldy GCMEMMAP,X          ;
+                ldx vCurrentSector      ; Skip if starbase in current sector
+                ldy gcMemMap,X          ;
                 bmi SKIP113             ;
 
                 lda #0                  ; Prep starbase lifetime := 0 game loops (fast death)
@@ -257,7 +257,7 @@ SKIP120         ldx #0                  ; Enqueue new, empty title phrase
                 bne SKIP118             ;
 
 ;*** Launch transfer vessel ****************************************************
-                lda #SHAP_TRANSVSSL     ; PLAYER4 is TRANSFER VESSEL (shape 5)
+                lda #shapeTRANSVSSL     ; PLAYER4 is TRANSFER VESSEL (shape 5)
                 sta PL4SHAPTYPE         ;
 
                 lda #1                  ; Place transfer vessel behind starbase:
@@ -294,7 +294,7 @@ LOOP041         lda PANELTXTTAB+73,X    ;
                 dex                     ;
                 bpl LOOP041             ;
 
-                lda #CCS_COL2|CCS_9     ; Set starship's ENERGY readout to "9999" in COLOR2
+                lda #ccs_Col2|ccs_9     ; Set starship's ENERGY readout to "9999" in COLOR2
                 ldx #3                  ;
 LOOP042         sta ENERGYD1,X          ;
                 dex                     ;

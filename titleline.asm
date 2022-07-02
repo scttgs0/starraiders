@@ -180,7 +180,7 @@ SKIP181         ldy #0                  ;
 
 ;*** Copy word to title line, add space ****************************************
 LOOP057         and #$3F                ; Strip color bits B6..7 from character
-                eor #CCS_COL2|$20       ; Merge COLOR2 bits and convert to ATASCII
+                eor #ccs_Col2|$20       ; Merge COLOR2 bits and convert to ATASCII
                 ldx L_COLUMNPOS         ; Copy character to title line
                 inc L_COLUMNPOS         ; Increment cursor column position
                 sta TITLETXT,X          ;
