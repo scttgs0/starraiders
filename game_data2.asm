@@ -948,7 +948,7 @@ WORDTAB         .text EOW|$20,"    RED ALERT"         ; Word $01
 
                 .text EOW|'M',"ISSION"                 ; Word $1A
 
-                .text EOW|$20,"   STAR RAIDERS"       ; Word $1B
+                .text EOW|$20,"   STAR RAIDERS"        ; Word $1B
 
 
 
@@ -1026,11 +1026,11 @@ WORDTAB         .text EOW|$20,"    RED ALERT"         ; Word $01
 
                 .text EOW|'P',"HOTONS"                 ; Word $37
 
-                .text EOW|$20                         ; Word $38
+                .text EOW|$20                          ; Word $38
                 .text EOW|'S',"TAR COMMANDER"          ; Word $39
 
 
-                .byte EOW|$00                         ;
+                .byte EOW|$00                          ;
 
 ;*** View modes ****************************************************************
 VIEWMODETAB     .byte $00                             ; Front view
@@ -1397,9 +1397,7 @@ DESTROYPHRTAB   .byte $58                             ; "PHOTON TORPEDOS DESTROY
 ;                     (0),(1),(2),(3),(4),(5),(6),(7),(8),(9)
 NOISEPATTAB     .byte $18,$FF,$02,$00,$8A,$A0,$00,$08,$50,$00; PHOTON TORPEDO LAUNCHED
 
-
                 .byte $40,$40,$01,$03,$88,$AF,$08,$00,$50,$04; SHIELD EXPLOSION
-
 
                 .byte $30,$40,$01,$03,$84,$A8,$04,$00,$50,$04; ZYLON EXPLOSION
 
