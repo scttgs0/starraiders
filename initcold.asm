@@ -129,8 +129,10 @@ LOOP001         sta HPOSP0,X            ; Clear $D000..$D0FF (GTIA registers)
 
 SKIP001         sta PORTA,X             ; Clear $D300..$D3FF (PIA registers)
                                         ; Clear $0067..$0166 (zero page game variables)
+
                 .byte $9D               ; HACK: Force ISVBISYNC,X with 16-bit address
                 .word ISVBISYNC         ; (loop jamming)
+
                 inx                     ;
                 bne LOOP001             ;
 
@@ -151,6 +153,7 @@ SKIP001         sta PORTA,X             ; Clear $D300..$D3FF (PIA registers)
                 sta VVBLKI              ;
                 lda #<DLSTHNDLR         ;
                 sta VDSLST              ;
+
                 lda #>VBIHNDLR          ;
                 sta VVBLKI+1            ;
                 lda #>DLSTHNDLR         ;

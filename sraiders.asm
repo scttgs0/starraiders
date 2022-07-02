@@ -23,29 +23,37 @@
 ;*                                                                             *
 ;*******************************************************************************
 
-                .cpu "6502"
+                .cpu "65816"
 
+                .include "equates_system_c256.asm"
                 .include "equates_system_atari8.asm"
                 .include "equates_game.asm"
 
+                .include "macros_65816.asm"
+                .include "macros_frs_graphic.asm"
+                .include "macros_frs_mouse.asm"
 
 ;--------------------------------------
 ;--------------------------------------
-.if MEDIA==0    ; EXE only
+                * = CHARSET-40
 ;--------------------------------------
-;--------------------------------------
-                * = $6000
-;--------------------------------------
-.elsif MEDIA==1 ; ROM only
+                .text "PGX"
+                .byte $01
+                .dword BOOT
+
+BOOT            clc
+                xce
+                .m8i8
+                .setdp $0000
+                .setbank $00
+
+                jml INITCOLD
+
+
 ;--------------------------------------
 ;--------------------------------------
                 * = $A000
 ;--------------------------------------
-.endif
-;--------------------------------------
-;--------------------------------------
-
-                .logical $A000
 
                 .include "game_data1.asm"
                 .include "charset.asm"
@@ -88,57 +96,3 @@
                 .include "panel.asm"
 
                 .include "game_data2.asm"
-
-                .endlogical
-
-;--------------------------------------
-;--------------------------------------
-.if MEDIA==0    ; EXE only
-;--------------------------------------
-;--------------------------------------
-                * = $0600
-;--------------------------------------
-RAMTOP      = $6A
-CART_INIT   = $BFFE
-CART_START  = $BFFA
-;---
-Bootstrap       lda RAMTOP              ; terminate if RAM size <= 36K
-                cmp #$90
-                bcc _XIT
-
-                lda #$90
-                sta RAMTOP
-                jsr $F3F6               ; display handler
-
-;   copy RAM $6000-7FFF -> $A000-BFFF
-_setVal1        lda $6000               ; [SMC]
-                inc _setVal1+1
-                bne _setVal2
-
-                inc _setVal1+2
-_setVal2        sta $A000               ; [SMC]
-                inc _setVal2+1
-                bne _setVal1
-
-                inc _setVal2+2
-
-;   stop when we reach $C000
-                lda #$C0
-                eor _setVal2+2
-                bne _setVal1
-
-                jsr L0631
-
-                jmp (CART_START)
-
-_XIT            rts
-
-L0631           jmp (CART_INIT)
-
-
-;--------------------------------------
-;--------------------------------------
-                * = $02E0
-;--------------------------------------
-                .word Bootstrap
-.endif
