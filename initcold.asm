@@ -58,7 +58,7 @@
 ;
 ; (2)  Initialize the 6502 CPU (reset the stack pointer, disable decimal mode).
 ;
-; (3)  Clear game memory from $0200..$1FFF in subroutine CLRMEM ($AE0F).
+; (3)  Clear game memory from $0200..$1FFF in subroutine ClrMem ($AE0F).
 ;
 ; (4)  Set the address vectors of the IRQ, VBI, and DLI handlers.
 ;
@@ -84,7 +84,7 @@
 ; (8)  Set display to Front view.
 ;
 ; (9)  Show or hide the Control Panel Display (bottom text window) in subroutine
-;      MODDLST ($ADF1), depending on the demo mode flag.
+;      ModDLST ($ADF1), depending on the demo mode flag.
 ;
 ; (10) Initialize our starship's velocity equivalent to speed key '6'.
 ;
@@ -142,7 +142,7 @@ SKIP001         sta PORTA,X             ; Clear $D300..$D3FF (PIA registers)
                 cld                     ; Clear 6502 CPU decimal mode
 
                 lda #$02                ; Clear $0200..$1FFF (game memory)
-                jsr CLRMEM              ;
+                jsr ClrMem              ;
 
                 lda #<IRQHNDLR          ; Set IRQ handler (VIMIRQ)
                 sta VIMIRQ              ;
@@ -176,7 +176,7 @@ SKIP001         sta PORTA,X             ; Clear $D300..$D3FF (PIA registers)
                 tay                     ;
                 ldx #$5F                ;
                 lda #$08                ;
-                jsr MODDLST             ;
+                jsr ModDLST             ;
 
                 lda #32                 ; Init our starship's velocity (= speed key '6')
                 sta NEWVELOCITY         ;

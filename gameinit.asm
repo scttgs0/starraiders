@@ -15,7 +15,7 @@
 ;      A Display List is created at DSPLST ($0280). It starts with 2 x 8 = 16
 ;      blank video lines, followed by 90 GRAPHICS7 rows. After a deliberate gap
 ;      in Display List instructions, which will be filled dynamically during the
-;      game by calls to subroutine MODDLST ($ADF1), it ends with a Display List
+;      game by calls to subroutine ModDLST ($ADF1), it ends with a Display List
 ;      wait-and-jump-back instruction to the start of the Display List at DSPLST
 ;      ($0280).
 ;

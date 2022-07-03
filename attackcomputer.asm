@@ -106,20 +106,26 @@
 ;         $ = Blip's top-left reference
 ;             position
 
-L_SHIFTSHAP     = $6C                   ; Saves shifted byte of blip shape bit pattern
 
-UPDATTCOMP      ldx TRACKDIGIT          ; Load index of tracked space object
+;======================================
+; Update Attack Computer Display
+;======================================
+UPDATTCOMP      .proc
+L_SHIFTSHAP     = $6C                   ; Saves shifted byte of blip shape bit pattern
+;---
+
+                ldx TRACKDIGIT          ; Load index of tracked space object
                 ldy BLIPCYCLECNT        ; Load blip cycle counter
                 cpy #5                  ;
-                bcs SKIP054             ; Skip drawing blip if blip cycle > 5
+                bcs _3                  ; Skip drawing blip if blip cycle > 5
 
 ;*** Blip cycle 0..4: Draw blip shape one row each cycle ***********************
                 lda BLIPCOLUMN          ; Init pen's pixel column number...
                 sta PENCOLUMN           ; ...with top position of blip shape
                 lda BLIPSHAPTAB,Y       ; Load bit pattern of one row of blip shape
-LOOP030         asl A                   ; Shift bit pattern one position to the left
+_next1          asl A                   ; Shift bit pattern one position to the left
                 sta L_SHIFTSHAP         ; Temporarily save shifted shape byte
-                bcc SKIP052             ; Skip if shifted-out bit = 0
+                bcc _1                  ; Skip if shifted-out bit = 0
 
                 lda #$81                ; Store "draw a line of 1 pixel length downward"
                 sta DIRLEN              ; ...for call to DRAWLINE2
@@ -129,54 +135,54 @@ LOOP030         asl A                   ; Shift bit pattern one position to the 
                 lda #$AA                ; Load 1-byte bit pattern for 4 pixels of COLOR2
                 jsr DRAWLINE2           ; Draw pixel on PLAYFIELD
 
-SKIP052         inc PENCOLUMN           ; Move pen one pixel to the right
+_1              inc PENCOLUMN           ; Move pen one pixel to the right
                 lda L_SHIFTSHAP         ; Reload shifted shape byte
-                bne LOOP030             ; Next horizontal pixel of blip shape
+                bne _next1              ; Next horizontal pixel of blip shape
 
                 inc BLIPROW             ; Move pen one pixel downward
-SKIP053         inc BLIPCYCLECNT        ; Increment blip cycle counter
-                rts                     ; Return
+_2              inc BLIPCYCLECNT        ; Increment blip cycle counter
+                rts
 
 ;*** Blip cycle 5..9: Delay ****************************************************
-SKIP054         cpy #10                 ; Return if blip cycle < 10
-                bcc SKIP053             ;
+_3              cpy #10                 ; Return if blip cycle < 10
+                bcc _2                  ;
 
 ;*** Blip cycle 10: Calculate new blip pixel row and column numbers ************
                 lda PL0LIFE,X           ; Skip if tracked object not alive
-                beq SKIP059             ;
+                beq _8                  ;
 
                 lda XPOSHI,X            ; Map x-coordinate of tracked space obj to -11..11:
                 ldy XPOSSIGN,X          ; Skip if tracked object on left screen half (x >= 0)
-                beq SKIP055             ;
+                beq _4                  ;
 
                 cmp #12                 ; Skip if x of tracked obj < +$0C** (< 3327) <KM>
-                bcc SKIP056             ;
+                bcc _5                  ;
                 lda #11                 ; Prep relative pixel column number of 11, skip
-                bpl SKIP056             ;
+                bpl _5                  ;
 
-SKIP055         cmp #-11                ; Skip if x of tracked obj >= -($0B**) (>=-2816) <KM>
-                bcs SKIP056             ;
+_4              cmp #-11                ; Skip if x of tracked obj >= -($0B**) (>=-2816) <KM>
+                bcs _5                  ;
                 lda #-11                ; Prep relative pixel column number of -11
 
-SKIP056         clc                     ; Add 131 (= blip's top-left reference pixel column)
+_5              clc                     ; Add 131 (= blip's top-left reference pixel column)
                 adc #131                ;
                 sta BLIPCOLUMN          ; BLIPCOLUMN := 131 + -11..11
 
                 lda YPOSHI,X            ; Map y-coordinate of tracked space obj to -6..4:
                 eor #$FF                ; Mirror y-coordinate on y-axis (displacement of +1)
                 ldy YPOSSIGN,X          ; Skip if tracked obj on lower screen half (y < 0)
-                bne SKIP057             ;
+                bne _6                  ;
 
                 cmp #5                  ; Skip if mirrored y of tracked obj < +$05** <KM>
-                bcc SKIP058             ;
+                bcc _7                  ;
                 lda #4                  ; Prep relative pixel row number of 4, skip
-                bpl SKIP058             ;
+                bpl _7                  ;
 
-SKIP057         cmp #-6                 ; Skip if mirrored y of tracked obj >= -($06**) <KM>
-                bcs SKIP058             ;
+_6              cmp #-6                 ; Skip if mirrored y of tracked obj >= -($06**) <KM>
+                bcs _7                  ;
                 lda #-6                 ; Prep relative pixel row number of -6
 
-SKIP058         clc                     ; Add 77 (= blip's top-left ref. pixel row number)
+_7              clc                     ; Add 77 (= blip's top-left ref. pixel row number)
                 adc #77                 ;
                 sta BLIPROW             ; BLIPROW := 77 + -6..4
 
@@ -187,28 +193,29 @@ SKIP058         clc                     ; Add 77 (= blip's top-left ref. pixel r
                                         ; PLAYFIELD address of top-left of Attack Computer
 PFMEM_C120R71   = PFMEM+71*40+120/4     ; Display's inner frame @ pixel column 120, row 71
 
-SKIP059         lda #<PFMEM_C120R71     ; Point MEMPTR to start of frame's...
+_8              lda #<PFMEM_C120R71     ; Point MEMPTR to start of frame's...
                 sta MEMPTR              ; ...inner top-left corner at column 120, row 71...
                 lda #>PFMEM_C120R71     ; ...in PLAYFIELD memory
                 sta MEMPTR+1            ;
 
                 ldx #14                 ; Traverse a 28 x 15 pixel rect of PLAYFIELD memory
-LOOP031         ldy #6                  ;
-LOOP032         lda (MEMPTR),Y          ; Load byte (4 pixels) from PLAYFIELD memory
+_next2          ldy #6                  ;
+_next3          lda (MEMPTR),Y          ; Load byte (4 pixels) from PLAYFIELD memory
                 and #$55                ; Filter COLOR1 pixels
                 sta (MEMPTR),Y          ; Store byte (4 pixels) back to PLAYFIELD memory
                 dey                     ;
-                bpl LOOP032             ; Next 4 pixels in x-direction
+                bpl _next3              ; Next 4 pixels in x-direction
 
                 clc                     ; Add 40 to MEMPTR
                 lda MEMPTR              ; (40 bytes = 160 pixels = 1 PLAYFIELD row of pixels)
                 adc #40                 ;
                 sta MEMPTR              ;
-                bcc SKIP060             ;
+                bcc _9                  ;
+
                 inc MEMPTR+1            ;
 
-SKIP060         dex                     ;
-                bpl LOOP031             ; Next row of pixels in y-direction
+_9              dex                     ;
+                bpl _next2              ; Next row of pixels in y-direction
 
 ;*** Prepare lock-on marker checks *********************************************
                 ldx TRACKDIGIT          ; Preload index of tracked space obj to check z-range
@@ -226,16 +233,16 @@ PFMEM_C136R84   = PFMEM+84*40+136/4     ; ...z lock-on marker @ pixel column 136
 PFMEM_C136R85   = PFMEM+85*40+136/4     ; ...z lock-on marker @ pixel column 136, row 85
 
                 lda LOCKONLIFE          ; If lock-on lifetime expired redraw lock-on markers
-                beq SKIP061             ;
+                beq _10                 ;
 
                 dec LOCKONLIFE          ; else decrem. lock-on lifetime, skip drawing markers
-                bne SKIP062             ;
+                bne _11                 ;
 
-SKIP061         lda BLIPCOLUMN          ; Skip x, y, and z lock-on marker if blip's...
+_10             lda BLIPCOLUMN          ; Skip x, y, and z lock-on marker if blip's...
                 cmp #129                ; ...top-left pixel column number not in 129..132
-                bcc SKIP062             ;
+                bcc _11                 ;
                 cmp #133                ;
-                bcs SKIP062             ;
+                bcs _11                 ;
 
                 lda #$AA                ; Draw x lock-on marker (4 horiz. pixels of COLOR2)
                 sta PFMEM_C120R76       ; ...at pixel column 120, row 76
@@ -243,9 +250,9 @@ SKIP061         lda BLIPCOLUMN          ; Skip x, y, and z lock-on marker if bli
 
                 lda BLIPROW             ; Skip y and z lock-on marker if blip's...
                 cmp #75                 ; ...top-left pixel row number not in 75...78
-                bcc SKIP062             ;
+                bcc _11                 ;
                 cmp #79                 ;
-                bcs SKIP062             ;
+                bcs _11                 ;
 
                 lda #$AA                ; Draw y lock-on marker (4 horiz. pixels of COLOR2)
                 sta PFMEM_C120R80       ; ...at pixel column 120, row 80
@@ -253,7 +260,7 @@ SKIP061         lda BLIPCOLUMN          ; Skip x, y, and z lock-on marker if bli
 
                 lda ZPOSHI,X            ; Skip z lock-on marker if z >= +$0C** (>= 3072) <KM>
                 cmp #12                 ;
-                bcs SKIP062             ;
+                bcs _11                 ;
 
                 ldy #$A0                ; Draw z lock-on marker (2 horiz. pixels of COLOR2)
                 sty PFMEM_C128R84       ; ...at pixel column 128, row 84 (prep lock-on flag)
@@ -261,5 +268,6 @@ SKIP061         lda BLIPCOLUMN          ; Skip x, y, and z lock-on marker if bli
                 sty PFMEM_C136R84       ; ...at pixel column 136, row 84
                 sty PFMEM_C136R85       ; ...at pixel column 136, row 85
 
-SKIP062         sty ISINLOCKON          ; Store lock-on flag (> 0 -> Tracked obj locked on)
-                rts                     ; Return
+_11             sty ISINLOCKON          ; Store lock-on flag (> 0 -> Tracked obj locked on)
+                rts
+                .endproc

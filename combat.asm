@@ -1,6 +1,6 @@
 ;*******************************************************************************
 ;*                                                                             *
-;*                                  HOMINGVEL                                  *
+;*                                  HomingVel                                  *
 ;*                                                                             *
 ;*      Calculate homing velocity of our starship's photon torpedo 0 or 1      *
 ;*                                                                             *
@@ -54,26 +54,35 @@
 ;
 ;   A = New velocity vector component of our starship's photon torpedo in <KM/H>
 
-L_VELSIGN       = $6A                   ; Saves velocity sign
 
-HOMINGVEL       ldy #NEG                ; Preload negative velocity sign
-                bcs SKIP131             ; Skip if difference is positive
+;======================================
+; Calculate homing velocity of our
+; starship's photon torpedo
+;======================================
+HomingVel       .proc
+L_VELSIGN       = $6A                   ; Saves velocity sign
+;---
+
+                ldy #NEG                ; Preload negative velocity sign
+                bcs _1                  ; Skip if difference is positive
 
                 eor #$FF                ; Invert to get absolute value of difference
                 ldy #0                  ; Preload positive velocity sign
-
-SKIP131         sty L_VELSIGN           ; Save velocity sign
+_1              sty L_VELSIGN           ; Save velocity sign
                 cmp #8                  ;
-                bcc SKIP132             ;
+                bcc _2                  ;
+
                 lda #7                  ; Limit difference to 0..7
-SKIP132         tay                     ;
+_2              tay                     ;
                 lda L_VELSIGN           ; Reload velocity sign
                 ora HOMVELTAB,Y         ; Combine with homing velocity from table
-                rts                     ; Return
+                rts
+                .endproc
+
 
 ;*******************************************************************************
 ;*                                                                             *
-;*                                   DAMAGE                                    *
+;*                                   Damage                                    *
 ;*                                                                             *
 ;*             Damage or destroy one of our starship's subsystems              *
 ;*                                                                             *
@@ -144,26 +153,32 @@ SKIP132         tay                     ;
 ; Panel Display. Next, the title phrase describing the subsystem's status is
 ; enqueued for display in the title line. If the Attack Computer has been
 ; destroyed it is switched off and the PLAYFIELD is cleared. The title line is
-; updated with the "DAMAGE CONTROL" message. Finally, the beeper sound pattern
-; DAMAGE REPORT is played in subroutine BEEP ($B3A6).
+; updated with the "Damage CONTROL" message. Finally, the beeper sound pattern
+; Damage REPORT is played in subroutine BEEP ($B3A6).
 
-DAMAGE          bit ISDEMOMODE          ; Return if in demo mode
-                bmi SKIP137             ;
+
+;======================================
+; Damage or destroy one of our
+; starship's subsystems
+;======================================
+Damage          .proc
+                bit ISDEMOMODE          ; Return if in demo mode
+                bmi _XIT                ;
 
 ;*** Damage some subsystem *****************************************************
                 ldx MISSIONLEVEL        ; Prep mission level
-LOOP047         lda RANDOM              ; Return if random number >= damage probability
+_next1          lda RANDOM              ; Return if random number >= damage probability
                 cmp DAMAGEPROBTAB,X     ; ...(the latter depends on mission level)
-                bcs SKIP137             ;
+                bcs _XIT                ;
 
                 and #$07                ; Randomly pick 1 of 6 subsystems
                 cmp #6                  ; Return if no subsystem picked
-                bcs SKIP137             ;
+                bcs _XIT                ;
 
                 tax                     ;
                 lda GCSTATPHO,X         ; Get picked subsystem status letter
                 asl A                   ; Check bit B6 (= destroyed) of letter code
-                bmi LOOP047             ; Try again if subsystem already destroyed
+                bmi _next1              ; Try again if subsystem already destroyed
 
                 lda PL2LIFE             ; Load Zylon photon torpedo lifetime...
                 cmp #30                 ; ...and compare it to 30 game loops
@@ -171,41 +186,43 @@ LOOP047         lda RANDOM              ; Return if random number >= damage prob
                 lda #ccs_Col2           ; Preload COLOR2 text color bits (= damaged status)
                 ldy DAMAGEPHRTAB,X      ; Preload title phrase offset of damaged subsystem
 
-                bcc SKIP135             ; Skip if Zylon torpedo lifetime < 30 game loops
+                bcc _3                  ; Skip if Zylon torpedo lifetime < 30 game loops
 
                 cpx #3                  ; Skip if selected subsystem not Attack Computer
-                bne SKIP133             ;
+                bne _1                  ;
                 bit GCSTATLRS           ; Skip if Long-Range Scan already destroyed
-                bvs SKIP135             ;
-SKIP133         cpx #4                  ; Skip if selected subsystem is not Long-Range Scan
-                bne SKIP134             ;
+                bvs _3                  ;
+_1              cpx #4                  ; Skip if selected subsystem is not Long-Range Scan
+                bne _2                  ;
                 bit GCSTATCOM           ; Skip if Attack Computer already destroyed
-                bvs SKIP135             ;
+                bvs _3                  ;
 
-SKIP134         lda #ccs_Col3           ; Preload COLOR3 text color bits (= destroyed status)
+_2              lda #ccs_Col3           ; Preload COLOR3 text color bits (= destroyed status)
                 ldy DESTROYPHRTAB,X     ; Preload title phrase offset of destroyed subsystem
 
-SKIP135         ora GCSTATPHO,X         ; Combine status letter with new color
+_3              ora GCSTATPHO,X         ; Combine status letter with new color
                 sta GCSTATPHO,X         ;
                 sty NEWTITLEPHR         ; Enqueue damage status title phrase
                 bit GCSTATCOM           ; Skip if Attack Computer OK or damaged
-                bvc SKIP136             ;
+                bvc _4                  ;
 
                 lda #0                  ; Switch Attack Computer off
                 sta DRAINATTCOMP        ;
-                jsr CLRPLAYFIELD        ; Clear PLAYFIELD
+                jsr ClrPlayfield        ; Clear PLAYFIELD
 
-SKIP136         ldy #$52                ; Set title phrase "DAMAGE CONTROL..."
+_4              ldy #$52                ; Set title phrase "Damage CONTROL..."
                 jsr SETTITLE            ;
 
-                ldx #$12                ; Play beeper sound pattern DAMAGE REPORT
+                ldx #$12                ; Play beeper sound pattern Damage REPORT
                 jsr BEEP                ;
 
-SKIP137         rts                     ; Return
+_XIT            rts
+                .endproc
+
 
 ;*******************************************************************************
 ;*                                                                             *
-;*                                  COLLISION                                  *
+;*                                  Collision                                  *
 ;*                                                                             *
 ;*            Detect a collision of our starship's photon torpedoes            *
 ;*                                                                             *
@@ -310,10 +327,10 @@ SKIP137         rts                     ; Return
 ; If a starbase was destroyed, then 3 points are subtracted from the score. If a
 ; Zylon ship was destroyed, then 6 points are added to the score and the Zylon
 ; KILL COUNTER readout of the Control Panel Display is incremented. Next, the
-; explosion is initialized in subroutine INITEXPL ($AC6B).
+; explosion is initialized in subroutine InitExpl ($AC6B).
 ;
 ; NOTE: This subroutine lacks proper explosion initialization if the starbase
-; was hit. The actual explosion initialization is done in subroutine DOCKING
+; was hit. The actual explosion initialization is done in subroutine Docking
 ; ($ACE6) when the code finds out that the starbase sector is no more marked as
 ; such in the Galactic Chart.
 ;
@@ -321,47 +338,56 @@ SKIP137         rts                     ; Return
 ; none is found then the mission is complete and code execution continues into
 ; subroutine GAMEOVER2 ($B121), ending the game. 
 
+
+;======================================
+; Detect a collision of our starship's
+; photon torpedoes
+;======================================
+Collision       .proc
 L_PLHIT         = $6B                   ; Saves PLAYER (and space object) index of hit PLAYER
 L_VIEWDIR       = $6C                   ; Saves view direction. Used values are:
                                         ;   $00 -> Front view
                                         ;   $FF -> Aft view
+;---
 
-COLLISION       ldx #2                  ; Loop over our starship's two photon torpedoes
-LOOP048         dex                     ;
-                bpl SKIP138             ; Branch into loop body below
-                rts                     ; Return
+                ldx #2                  ; Loop over our starship's two photon torpedoes
+_next1          dex                     ;
+                bpl _1                  ; Branch into loop body below
+                rts
 
 ;*** Photon torpedo sanity checks **********************************************
-SKIP138         lda PL3SHAPTYPE,X       ; Next photon torpedo if PLAYER not a PHOTON TORPEDO
-                bne LOOP048             ;
+_1              lda PL3SHAPTYPE,X       ; Next photon torpedo if PLAYER not a PHOTON TORPEDO
+                bne _next1              ;
 
                 lda PL3LIFE,X           ; Next photon torpedo if PLAYER not alive
-                beq LOOP048             ;
+                beq _next1              ;
 
 ;*** Check if our starship's photon torpedo has hit in x-y plane ***************
                 lda PL3HIT,X            ; Check Player/Missile collision register
                 and #$07                ; Next torpedo if no torpedo-to-PLAYER collision
-                beq LOOP048             ;
+                beq _next1              ;
 
                 lsr A                   ; Find out which of PLAYER0..2 was hit in PLAYFIELD
                 cmp #3                  ;
-                bne SKIP139             ;
+                bne _2                  ;
                 lsr A                   ;
-SKIP139         tay                     ; Save resulting index of hit PLAYER
+_2              tay                     ; Save resulting index of hit PLAYER
 
                 lda PL0LIFE,Y           ; Next torpedo if PLAYER0..2 (= targets) not alive
-                beq LOOP048             ;
+                beq _next1              ;
 
 ;*** Has our starship's photon torpedo hit within valid z-coordinate interval? *
                 lda SHIPVIEW            ; Skip if in Front view
-                beq SKIP140             ;
+                beq _3                  ;
+
                 lda #$FF                ; Calculate range index...
-SKIP140         sta L_VIEWDIR           ; Saves view direction
+_3              sta L_VIEWDIR           ; Saves view direction
                 eor ZPOSHI,Y            ; Calc ABS(z-coordinate (high byte)) of hit object
                 cmp #16                 ; Limit range index to 0..7
-                bcc SKIP141             ;
+                bcc _4                  ;
+
                 lda #15                 ;
-SKIP141         lsr A                   ;
+_4              lsr A                   ;
                 sty L_PLHIT             ; Save index of hit PLAYER
 
                 tay                     ;
@@ -369,10 +395,10 @@ SKIP141         lsr A                   ;
                 eor PL3ZPOSHI,X         ; Calc ABS(z-coordinate (high byte)) of torpedo
 
                 cmp HITMAXZTAB,Y        ; Next torpedo if torpedo >= max hit z-coordinate
-                bcs LOOP048             ;
+                bcs _next1              ;
 
                 cmp HITMINZTAB,Y        ; Next torpedo if torpedo < min hit z-coordinate
-                bcc LOOP048             ;
+                bcc _next1              ;
 
 ;*** Our starship's photon torpedo has hit within valid z-coordinate interval! *
                 ldy L_PLHIT             ; Reload index of hit PLAYER
@@ -382,22 +408,23 @@ SKIP141         lsr A                   ;
                 sta NOISEZYLONTIM       ;
 
                 cmp #15                 ; Skip if photon torpedo "age" < 15
-                bcc SKIP142             ;
+                bcc _5                  ;
+
                 lda PL0SHAPTYPE,Y       ; CARRY := PLAYER is ZYLON BASESTAR (shape type 8)
                 cmp #shapeZBASESTAR     ; (and torpedo "age" good to destroy ZYLON BASESTAR)
 
 ;*** Clean up our starship's photon torpedo and hit PLAYER *********************
-SKIP142         lda #0                  ; Lock-on lifetime := 0 game loops
+_5              lda #0                  ; Lock-on lifetime := 0 game loops
                 sta LOCKONLIFE          ;
                 sta PL3LIFE,X           ; Photon torpedo's lifetime := 0 game loops
-                bcs SKIP144             ; If CARRY set do not score, just do explosion
+                bcs _7                  ; If CARRY set do not score, just do explosion
 
                 sta PL0LIFE,Y           ; Hit PLAYER lifetime := 0 game loops
 
                 lda PL0SHAPTYPE,Y       ; If hit PLAYER is...
-                beq SKIP144             ; ...a PHOTON TORPEDO (shape type 0)...
+                beq _7                  ; ...a PHOTON TORPEDO (shape type 0)...
                 cmp #shapeMETEOR        ; ...or a METEOR (shape type 6)...
-                beq SKIP144             ; ...do not score, just do explosion
+                beq _7                  ; ...do not score, just do explosion
 
                 lda #0                  ; Clear photon torpedo tracking flag
                 sta ISTRACKING          ;
@@ -405,7 +432,7 @@ SKIP142         lda #0                  ; Lock-on lifetime := 0 game loops
 ;*** Zylon ship (or starbase) destroyed! ***************************************
                 ldx vCurrentSector      ; Decrement Zylon count on Galactic Chart
                 dec gcMemMap,X          ;
-                bpl SKIP143             ; Skip if destroyed space object was Zylon ship
+                bpl _6                  ; Skip if destroyed space object was Zylon ship
 
 ;*** Starbase destroyed! *******************************************************
                 lda #0                  ; Remove destroyed starbase from Galactic Chart
@@ -417,10 +444,10 @@ SKIP142         lda #0                  ; Lock-on lifetime := 0 game loops
                 lda SCORE+1             ;
                 sbc #0                  ;
                 sta SCORE+1             ;
-                rts                     ; Return
+                rts
 
 ;*** Zylon ship destroyed! *****************************************************
-SKIP143         clc                     ; SCORE := SCORE + 6 for destroying Zylon ship
+_6              clc                     ; SCORE := SCORE + 6 for destroying Zylon ship
                 lda SCORE               ;
                 adc #6                  ;
                 sta SCORE               ;
@@ -429,27 +456,30 @@ SKIP143         clc                     ; SCORE := SCORE + 6 for destroying Zylo
                 sta SCORE+1             ;
 
                 ldx #1                  ; Increment Zylon KILL COUNTER readout...
-LOOP049         inc KILLCNTD1,X         ; ...of Control Panel Display
+_next2          inc KILLCNTD1,X         ; ...of Control Panel Display
                 lda KILLCNTD1,X         ;
                 cmp #(ccs_Col1|ccs_9)+1 ;
-                bcc SKIP144             ;
+                bcc _7                  ;
+
                 lda #(ccs_Col1|ccs_0)   ;
                 sta KILLCNTD1,X         ;
                 dex                     ;
-                bpl LOOP049             ;
+                bpl _next2              ;
 
-SKIP144         jsr INITEXPL            ; Init explosion at hit PLAYER
+_7              jsr InitExpl            ; Init explosion at hit PLAYER
 
 ;*** Any Zylon ships left? *****************************************************
                 ldx #127                ; Scan all sectors of Galactic Chart
-LOOP050         lda gcMemMap,X          ;
-                bmi SKIP145             ;
-                bne SKIP146             ; Return if Zylon sector found
-SKIP145         dex                     ;
-                bpl LOOP050             ;
+_next3          lda gcMemMap,X          ;
+                bmi _8                  ;
+                bne _XIT                ; Return if Zylon sector found
+
+_8              dex                     ;
+                bpl _next3              ;
 
 ;*** Game over (Mission Complete) **********************************************
                 ldy #$3F                ; Set title phrase "MISSION COMPLETE"
                 ldx #0                  ; Set mission bonus offset
                 jsr GAMEOVER2           ; Game over
-SKIP146         rts                     ; Return
+_XIT            rts
+                .endproc

@@ -35,7 +35,7 @@
 ;
 ; (8)  Rotate the position vector of all space objects horizontally and
 ;      vertically, according to the saved joystick position (skip this if in
-;      Galactic Chart view) using subroutine ROTATE ($B69B).
+;      Galactic Chart view) using subroutine Rotate ($B69B).
 ;
 ; (9)  Move our starship forward in space. Our starship is always located at the
 ;      center of the game's 3D coordinate system, so all space objects are moved
@@ -58,10 +58,10 @@
 ;
 ; (12) Calculate the perspective projection of the position vectors of all space
 ;      objects and from that their pixel row and column number (applies to Front
-;      and Aft view) using subroutines PROJECTION ($AA21), SCREENCOLUMN ($B6FB),
-;      and SCREENROW ($B71E). If a space object (star, explosion fragment) moved
+;      and Aft view) using subroutines PROJECTION ($AA21), ScreenColumn ($B6FB),
+;      and ScreenRow ($B71E). If a space object (star, explosion fragment) moved
 ;      offscreen then a new space object is automatically created in subroutine
-;      SCREENCOLUMN ($B6FB).
+;      ScreenColumn ($B6FB).
 ;
 ; (13) Handle hyperwarp marker selection in the Galactic Chart view in
 ;      subroutine SELECTWARP ($B162).
@@ -69,7 +69,7 @@
 ; (14) If in Long-Range Scan view, compute the pixel column number and the pixel
 ;      row number of all PLAYFIELD space objects (stars, explosion fragments) on
 ;      the plane established by the z and x axis of the 3D coordinate system
-;      using subroutines SCREENCOLUMN ($B6FB) and SCREENROW ($B71E). Our
+;      using subroutines ScreenColumn ($B6FB) and ScreenRow ($B71E). Our
 ;      starship's shape is drawn using subroutine DRAWLINES ($A76F). If the
 ;      Long-Range Scan is OK then PLAYFIELD space object pixel numbers are
 ;      computed and drawn. This is skipped if the Long-Range Scan is destroyed. 
@@ -85,7 +85,7 @@
 ;      calculation in (15). It also computes a range index and uses the same
 ;      color lookup table FOURCOLORPIXEL ($BA90). If a star in the Aft view
 ;      became too distant (z-coordinate < -$F000 (-4096) <KM>) its position is
-;      re-initialized in subroutine INITPOSVEC ($B764).
+;      re-initialized in subroutine InitPosVec ($B764).
 ;
 ; (18) If in demo mode skip input handling and jump directly to function key
 ;      handling (28).
@@ -96,7 +96,7 @@
 ;      ($C8) and JOYSTICKY ($C9).
 ;
 ; (21) Check if our starship's photon torpedoes have hit a target in subroutine
-;      COLLISION ($AF3D). This subroutine triggers a game over if all Zylon
+;      Collision ($AF3D). This subroutine triggers a game over if all Zylon
 ;      ships have been destroyed.
 ;
 ; (22) Handle the joystick trigger in subroutine TRIGGER ($AE29).
@@ -116,7 +116,7 @@
 ;          tracked PLAYER space object by emulating pressing the 'F' (Front
 ;          view) or 'A' (Aft view) key (only if in Front or Aft view).
 ;
-; (24) Handle docking at a starbase in subroutine DOCKING ($ACE6).
+; (24) Handle docking at a starbase in subroutine Docking ($ACE6).
 ;
 ; (25) Handle maneuvering both of our starship's photon torpedoes, the single
 ;      Zylon photon torpedo, and the attacking Zylon ships in subroutine
@@ -130,9 +130,9 @@
 ; (27) If our starship was hit then execute the following steps:
 ;
 ;      o   Damage or destroy one of our starship's subsystems in subroutine
-;          DAMAGE ($AEE1).
+;          Damage ($AEE1).
 ;
-;      o   Trigger an explosion in subroutine INITEXPL ($AC6B), 
+;      o   Trigger an explosion in subroutine InitExpl ($AC6B), 
 ;
 ;      o   Store the severity of the hit.
 ;
@@ -155,9 +155,9 @@
 ;          GAMEOVER ($B10A).
 ;
 ;      o   Hide the Control Panel Display (bottom text window) in subroutine
-;          MODDLST ($ADF1).
+;          ModDLST ($ADF1).
 ;
-;      o   Clear the PLAYFIELD in subroutine CLRPLAYFIELD ($AE0D).
+;      o   Clear the PLAYFIELD in subroutine ClrPlayfield ($AE0D).
 ;
 ;      o   Enable the STARSHIP EXPLOSION noise. 
 ;
@@ -415,7 +415,7 @@ LOOP013         lda PLSHAP2TAB,Y        ;
                 lda JOYSTICKX           ; Skip if joystick centered horizontally
                 beq SKIP008             ;
 
-                sta JOYSTICKDELTA       ; Save JOYSTICKX (used in subroutine ROTATE)
+                sta JOYSTICKDELTA       ; Save JOYSTICKX (used in subroutine Rotate)
                 ldy MAXSPCOBJIND        ; Loop over all space objects in use
 LOOP014         sty L_ZPOSOFF           ; Save offset to z-coordinate
                 clc                     ;
@@ -424,12 +424,12 @@ LOOP014         sty L_ZPOSOFF           ; Save offset to z-coordinate
                 tax                     ; X := offset to z-coordinate
                 adc #NUMSPCOBJ_ALL      ;
                 tay                     ; Y := offset to x-coordinate
-                jsr ROTATE              ; Calc new x-coordinate (horizontal rot @ y-axis)
+                jsr Rotate              ; Calc new x-coordinate (horizontal rot @ y-axis)
 
                 tya                     ;
                 tax                     ; X := offset to x-coordinate
                 ldy L_ZPOSOFF           ; Y := offset to z-coordinate
-                jsr ROTATE              ; Calc new z-coordinate (horizontal rot @ y-axis)
+                jsr Rotate              ; Calc new z-coordinate (horizontal rot @ y-axis)
                 dey                     ;
                 bpl LOOP014             ; Next space object
 
@@ -437,7 +437,7 @@ LOOP014         sty L_ZPOSOFF           ; Save offset to z-coordinate
 SKIP008         lda JOYSTICKY           ; Skip if joystick centered vertically
                 beq SKIP009             ;
 
-                sta JOYSTICKDELTA       ; Save JOYSTICKY (used in subroutine ROTATE)
+                sta JOYSTICKDELTA       ; Save JOYSTICKY (used in subroutine Rotate)
                 ldy MAXSPCOBJIND        ; Loop over all space objects in use
 LOOP015         sty L_ZPOSOFF           ; Save offset to z-coordinate
                 clc                     ;
@@ -446,12 +446,12 @@ LOOP015         sty L_ZPOSOFF           ; Save offset to z-coordinate
                 tax                     ; X := offset to z-coordinate
                 adc #NUMSPCOBJ_ALL*2    ;
                 tay                     ; Y := offset to y-coordinate
-                jsr ROTATE              ; Calc new y-coordinate (vertical rot @ x-axis)
+                jsr Rotate              ; Calc new y-coordinate (vertical rot @ x-axis)
 
                 tya                     ;
                 tax                     ; X := offset to y-coordinate
                 ldy L_ZPOSOFF           ; Y := offset to z-coordinate
-                jsr ROTATE              ; Calc new z-coordinate (vertical rot @ x-axis)
+                jsr Rotate              ; Calc new z-coordinate (vertical rot @ x-axis)
                 dey                     ;
                 bpl LOOP015             ; Next space object
 
@@ -573,7 +573,7 @@ SKIP016         lda YPOSLO,X            ;
                 sta DIVIDEND+1          ;
 
 JUMP001         jsr PROJECTION          ; Calc pixel row number rel. to screen center
-                jsr SCREENROW           ; Calc pixel row number rel. to top-left of screen
+                jsr ScreenRow           ; Calc pixel row number rel. to top-left of screen
 
                 lda XPOSSIGN,X          ; Prepare projection division...
                 bne SKIP017             ; DIVIDEND (16-bit value) := ABS(x-coordinate)
@@ -591,7 +591,7 @@ SKIP017         lda XPOSLO,X            ;
                 sta DIVIDEND+1          ;
 
 JUMP002         jsr PROJECTION          ; Calc pixel column number rel. to screen center
-SKIP018         jsr SCREENCOLUMN        ; Calc pixel column number rel. to top-left of screen
+SKIP018         jsr ScreenColumn        ; Calc pixel column number rel. to top-left of screen
                 dex                     ;
                 bpl LOOP021             ; Next space object
 
@@ -615,7 +615,7 @@ LOOP022         lda ZPOSHI,X            ; Load z-coordinate (high byte)
                 eor #$FF                ; A := ABS(z-coordinate (high byte))
 SKIP020         tay                     ;
                 lda MAPTO80,Y           ; Calc pixel row number rel. to screen center
-                jsr SCREENROW           ; Calc pixel row number rel. to top-left of screen
+                jsr ScreenRow           ; Calc pixel row number rel. to top-left of screen
 
                 lda XPOSHI,X            ; Load x-coordinate (high byte)
                 ldy XPOSSIGN,X          ; Load sign of x-coordinate
@@ -623,7 +623,7 @@ SKIP020         tay                     ;
                 eor #$FF                ; A := ABS(x-coordinate (high byte))
 SKIP021         tay                     ;
                 lda MAPTO80,Y           ; Calc pixel column number rel. to screen center
-                jsr SCREENCOLUMN        ; Calc pixel column number rel. to top-left of screen
+                jsr ScreenColumn        ; Calc pixel column number rel. to top-left of screen
 
                 dex                     ;
                 bpl LOOP022             ; Next space object
@@ -836,7 +836,7 @@ LOOP025         lda ZPOSHI,X            ; Prep z-coordinate (high byte)
 
                 cmp #$F0                ; Skip if star not too far (z < $F0** (-4096) <KM>)
                 bcs SKIP031             ;
-                jsr INITPOSVEC          ; Re-init position vector
+                jsr InitPosVec          ; Re-init position vector
 SKIP031         eor #$FF                ; Invert z-coordinate (high byte)
 
 SKIP032         cmp #16                 ; Convert z-coordinate (high byte)
@@ -886,7 +886,7 @@ SKIP034         jsr KEYBOARD            ; Handle keyboard input
                 sta JOYSTICKX           ; JOYSTICKX := +1 -> Right
 
 ;*** (21) Check if our starship's photon torpedoes have hit a target ***********
-                jsr COLLISION           ; Check if our starship's photon torpedoes have hit
+                jsr Collision           ; Check if our starship's photon torpedoes have hit
 
 ;*** (22) Handle joystick trigger **********************************************
                 jsr TRIGGER             ; Handle joystick trigger
@@ -939,7 +939,7 @@ SKIP037         stx TRACKDIGIT          ; Store index of tracked space object
                 sta KEYCODE             ; ...and store it (= emulate pressing 'F' or 'A' key)
 
 ;*** (24) Handle docking to starbase *******************************************
-SKIP038         jsr DOCKING             ; Handle docking to starbase
+SKIP038         jsr Docking             ; Handle docking to starbase
 
 ;*** (25) Handle maneuvering ***************************************************
                 jsr MANEUVER            ; Handle maneuvering photon torpedoes and Zylon ships
@@ -967,10 +967,10 @@ SKIP038         jsr DOCKING             ; Handle docking to starbase
                 bcs SKIP040             ;
 
 ;*** (27) Our starship was hit! ************************************************
-                jsr DAMAGE              ; Damage or destroy some subsystem
+                jsr Damage              ; Damage or destroy some subsystem
 
                 ldy #2                  ; Trigger explosion at PLAYER2 (Zylon photon torpedo)
-                jsr INITEXPL            ;
+                jsr InitExpl            ;
 
                 ldx #$7F                ; Prep HITBADNESS := SHIELDS HIT
                 lda SHIELDSCOLOR        ; Skip if Shields are up (SHIELDSCOLOR not {BLACK}).
@@ -986,9 +986,9 @@ SKIP038         jsr DOCKING             ; Handle docking to starbase
                 ldx #$5F                ; Hide Control Panel Display (bottom text window)
                 ldy #$80                ;
                 lda #$08                ;
-                jsr MODDLST             ;
+                jsr ModDLST             ;
 
-                jsr CLRPLAYFIELD        ; Clear PLAYFIELD
+                jsr ClrPlayfield        ; Clear PLAYFIELD
 
                 ldx #64                 ; Enable STARSHIP EXPLOSION noise (see SOUND)
                 stx NOISEHITLIFE        ;

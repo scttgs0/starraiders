@@ -24,7 +24,7 @@ UPDTITLE        lda TITLEPHR            ; Skip if no title phrase set
                 dec TITLELIFE           ; Decrement title phrase segment lifetime
                 beq SKIP176             ; If lifetime expired show next title segment
 
-SKIP174         rts                     ; Return
+SKIP174         rts
 
 SKIP175         ldy NEWTITLEPHR         ; Prep enqueued new title phrase
                 beq SKIP174             ; Return if not set
@@ -58,11 +58,11 @@ SKIP175         ldy NEWTITLEPHR         ; Prep enqueued new title phrase
 ;
 ; DETAILS
 ;
-; The Display List is modified by subroutine MODDLST ($ADF1) to display the
+; The Display List is modified by subroutine ModDLST ($ADF1) to display the
 ; title line. Then, the title line is cleared and the words of the title phrase
 ; are copied into it using the passed offset into title phrase table PHRASETAB
 ; ($BBAA). If the offset has a value of $FF the title line is hidden in
-; subroutine MODDLST ($ADF1). 
+; subroutine ModDLST ($ADF1). 
 ;
 ; INPUT
 ;
@@ -116,7 +116,7 @@ SETTITLE        sty TITLEPHR            ; Save title phrase offset
                 ldy #$23                ; Show title line
                 ldx #$0F                ;
                 lda #$07                ;
-                jsr MODDLST             ;
+                jsr ModDLST             ;
 
 ;*** Init cursor column position and clear title line **************************
 SKIP176         ldx #19                 ; There are 19(+1) characters to clear
@@ -135,7 +135,7 @@ SKIP177         ldx TITLEPHR            ; Load title phrase offset
                 ldx #$0F                ; Remove title line and return
                 ldy #$80                ;
                 lda #$07                ;
-                jmp MODDLST             ;
+                jmp ModDLST             ;
 
 SKIP178         lda PHRASETAB,X         ; Get phrase token
 
@@ -149,7 +149,7 @@ SKIP178         lda PHRASETAB,X         ; Get phrase token
                 sta TITLETXT,X          ; Store class in title line
                 lda #60                 ; Title segment lifetime := 60 game loops
                 sta TITLELIFE           ;
-                rts                     ; Return
+                rts
 
 ;*** Display scored rank? ******************************************************
 SKIP179         cmp #$FD                ; Skip if not "scored rank" token
@@ -199,4 +199,4 @@ SKIP182         bvc SKIP177             ; %10 -> End-of-segment.
                 ldy #$FF                ;        Title segment lifetime := 60 game loops
                 sty TITLEPHR            ; %11 -> End-of-phrase, long delay, hide title line
 SKIP183         sta TITLELIFE           ;        Title segment lifetime := 254 game loops
-                rts                     ; Return
+                rts

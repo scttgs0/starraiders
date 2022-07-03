@@ -241,7 +241,7 @@ SKIP207         dex                     ;
 SKIP208         dec ZYLONUNITTIM        ; Decrement Zylon unit movement timer
                 bmi SKIP210             ; If timer < 0 move Zylon units
 
-SKIP209         rts                     ; Return
+SKIP209         rts
 
 ;*** Restore Zylon unit movement timer and decrement score *********************
 SKIP210         lda #49                 ; Reset Zylon unit movement timer to 49
@@ -260,7 +260,7 @@ SKIP211         dec SCORE               ;
 LOOP070         lda gcMemMap,X          ; Loop over all sectors, load sector type
                 bpl SKIP212             ; Skip if not a starbase sector
 
-                jsr ISSURROUNDED        ; Skip if starbase sector not completely surrounded
+                jsr IsSurrounded        ; Skip if starbase sector not completely surrounded
                 beq SKIP212             ;
 
 ;*** Starbase is surrounded, destroy starbase **********************************
@@ -318,7 +318,7 @@ LOOP072         lda gcMemMap,X          ;
                 dex                     ;
                 bpl LOOP072             ; Next sector
 
-                rts                     ; Return (no starbase sector found)
+                rts                     ; (no starbase sector found)
 
 ;*** Store coordinates of starbase to be hunted ********************************
 SKIP215         stx HUNTSECTOR          ; Store hunted starbase sector column and row
@@ -352,7 +352,7 @@ LOOP074         lda gcMemMap,X          ; Loop over all sectors
                 ldx #0                  ; Loop over all sectors
 LOOP075         lda gcMemMap,X          ;
                 bpl SKIP216             ; Skip if not a starbase sector
-                jsr ISSURROUNDED        ; Skip if starbase not surrounded
+                jsr IsSurrounded        ; Skip if starbase not surrounded
                 beq SKIP216             ;
 
                 lda #99                 ; Yes, starbase surrounded...
@@ -367,7 +367,7 @@ LOOP075         lda gcMemMap,X          ;
 SKIP216         inx                     ;
                 bpl LOOP075             ; Next sector
 
-SKIP217         rts                     ; Return
+SKIP217         rts
 
 ;*** Move single Zylon unit ****************************************************
 SKIP218         ldy gcMemMap,X          ; X contains current sector

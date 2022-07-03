@@ -104,7 +104,7 @@
 ;      photon torpedoes 0 and 1 the PLAYER row number difference between the
 ;      PLAYER of tracked target space object and the current location of the
 ;      PLAYER of our starship's photon torpedo 0 is passed to subroutine
-;      HOMINGVEL ($AECA). It returns the new y-velocity vector component value
+;      HomingVel ($AECA). It returns the new y-velocity vector component value
 ;      for both of our starship's photon torpedoes in <KM/H>. If the target is
 ;      located below our starship's photon torpedo 0 a value of 0 <KM/H> is
 ;      used.
@@ -164,7 +164,7 @@
 ;
 ;      With a probability of 2% (4:256) a new meteor is created: Its shape type
 ;      is set to METEOR, its position vector components to random coordinates in
-;      subroutine INITPOSVEC ($B764), its lifetime to 60 game loop iterations,
+;      subroutine InitPosVec ($B764), its lifetime to 60 game loop iterations,
 ;      and its velocity vector components (velocities) to x-velocity: 0 <KM/H>,
 ;      y-velocity: 0 <KM/H>, z-velocity: -8 <KM/H>. Then code execution returns.
 ;
@@ -331,7 +331,7 @@
 ;
 ;      Finally, the Zylon photon torpedo is launched with a lifetime of 62 game
 ;      loop iterations. Its position vector is copied from the launching Zylon
-;      ship in subroutine COPYPOSVEC ($ACAF). In addition, the Zylon ship is
+;      ship in subroutine CopyPosVec ($ACAF). In addition, the Zylon ship is
 ;      earmarked for the tracking computer.
 
 L_CTRLDZYLON    = $6A                   ; Index of currently game-controlled Zylon ship.
@@ -355,20 +355,20 @@ MANEUVER        lda WARPSTATE           ; Return if in starbase sector or hyperw
                 sbc PL3ROWNEW           ;
                 bcc SKIP079             ; Skip if target above our starship's photon torpedo
                 lda #0                  ; Prep A := 0
-SKIP079         jsr HOMINGVEL           ; Get y-velocity for homing photon torpedo 0 and 1
+SKIP079         jsr HomingVel           ; Get y-velocity for homing photon torpedo 0 and 1
                 sta PL3YVEL             ; Store y-velocity photon torpedo 0
                 sta PL4YVEL             ; Store y-velocity photon torpedo 1
 
                 sec                     ; Prep A := PLAYER column number of target...
                 lda PL3COLUMN           ; ...- PLAYER column number of photon torpedo 0
                 sbc PL0COLUMN,X         ;
-                jsr HOMINGVEL           ; Get x-velocity for homing photon torpedo 0
+                jsr HomingVel           ; Get x-velocity for homing photon torpedo 0
                 sta PL3XVEL             ; Store x-velocity of photon torpedo 0
 
                 sec                     ; Prep A := PLAYER column number of target...
                 lda PL4COLUMN           ; ...- PLAYER column number of photon torpedo 1
                 sbc PL0COLUMN,X         ;
-                jsr HOMINGVEL           ; Get x-velocity for homing photon torpedo 1
+                jsr HomingVel           ; Get x-velocity for homing photon torpedo 1
                 sta PL4XVEL             ; Store x-velocity of photon torpedo 1
 
 ;*** Make Zylon ships follow rotation of our starship **************************
@@ -444,7 +444,7 @@ SKIP090         lda RANDOM              ; Return in 98% (252:256) (do not create
                 lda #shapeMETEOR        ; PLAYER2 is METEOR (shape type 6)
                 sta PL2SHAPTYPE         ;
                 ldx #2                  ; Randomize position vector of meteor
-                jsr INITPOSVEC          ;
+                jsr InitPosVec          ;
                 lda #60                 ; Meteor lifetime := 60 game loops
                 sta PL2LIFE             ;
                 lda #NEG|8              ; SUMMARY:
@@ -453,7 +453,7 @@ SKIP090         lda RANDOM              ; Return in 98% (252:256) (do not create
                 sta PL2COLUMN           ; z-velocity := -8 <KM/H>
                 sta PL2XVEL             ;
                 sta PL2YVEL             ; PLAYER2 column number := 0 (offscreen)
-SKIP091         rts                     ; Return
+SKIP091         rts
 
 ;*** Toggle Zylon ship control *************************************************
 SKIP092         lda CTRLDZYLON          ; Toggle control to the other Zylon ship
@@ -498,7 +498,7 @@ SKIP093         sta ZYLONFLPAT0,X       ;
                 sta XPOSHI,X            ;
                 ora #$71                ; z-coordinate (high byte) := >= +28928 (+$71**) <KM>
                 sta ZPOSHI,X            ;
-                jsr RNDINVXY            ; Randomly invert x and y coordinate of pos vector
+                jsr RndInvXY            ; Randomly invert x and y coordinate of pos vector
 
 ;*** Set current flight pattern to attack flight pattern? **********************
 SKIP094         lda ZPOSHI,X            ; Skip if Zylon too distant (z >= +$20** <KM>)
@@ -625,7 +625,7 @@ SKIP107         stx L_CTRLDZYLON        ; Save index of controlled Zylon ship
                 lda TORPEDODELAY        ; Count down Zylon photon torpedo delay timer...
                 beq SKIP109             ; ...before launching next Zylon photon torpedo
                 dec TORPEDODELAY        ;
-SKIP108         rts                     ; Return
+SKIP108         rts
 
 ;*** Check y-coordinate of Zylon ship ******************************************
 SKIP109         clc                     ; Return if Zylon ship's y-coordinate not...
@@ -665,4 +665,4 @@ SKIP110         cmp #$20                ; Return if Zylon ship too far...
                 ldx #2                  ; Prep source index for position vector copy
                 ldy CTRLDZYLON          ; Prep destination index for position vector copy
                 sty ZYLONATTACKER       ; Save Zylon ship index for tracking computer
-                jmp COPYPOSVEC          ; Copy position vector from Zylon ship to its torpedo
+                jmp CopyPosVec          ; Copy position vector from Zylon ship to its torpedo

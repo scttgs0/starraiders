@@ -141,7 +141,7 @@
 ;
 ;      If there is a starbase in the arrival sector, its x and y coordinates are
 ;      initialized to random values within the interval defined by the vicinity
-;      mask by using subroutine RNDINVXY ($B7BE). Its z-coordinate is forced to
+;      mask by using subroutine RndInvXY ($B7BE). Its z-coordinate is forced to
 ;      a value >= +$71** (+28928) <KM>. Its velocity vector components are set
 ;      to 0 <KM/H>. 
 ;
@@ -213,7 +213,7 @@ SKIP065         lda RANDOM              ; Prep random x-velocity of Hyperwarp Ta
                 ora #$10                ; Velocity value >= 16 <KM/H>
                 and VEERMASK            ; Limit velocity value by mission level
                 sta PL3YVEL             ; PLAYER3 y-velocity := velocity value
-SKIP066         rts                     ; Return
+SKIP066         rts
 
 ;*** HYPERSPACE PHASE **********************************************************
 SKIP067         tya                     ; Skip if already in HYPERSPACE PHASE
@@ -287,7 +287,7 @@ LOOP033         lda #0                  ; Loop over all coordinates of starbase
                 ora #$71                ;
                 sta PL2ZPOSHI           ;
                 ldx #2                  ; Randomly invert starbase x and y coordinates...
-                jmp RNDINVXY            ; ...and return
+                jmp RndInvXY            ; ...and return
 
 ;*** Flash red alert if Zylon sector entered ***********************************
 SKIP070         beq SKIP071             ; Skip if no Zylon ships in sector
@@ -301,7 +301,7 @@ SKIP070         beq SKIP071             ; Skip if no Zylon ships in sector
                 ldy #$75                ; Set title phrase "RED ALERT"
                 jsr SETTITLE            ;
 
-SKIP071         rts                     ; Return
+SKIP071         rts
 
 ;*******************************************************************************
 ;*                                                                             *
@@ -457,7 +457,7 @@ INITTRAIL       dec TRAILDELAY          ; Decrement star trail delay
                 sta XPOSHI,X            ;
                 lda WARPSTARYTAB,Y      ;
                 sta YPOSHI,X            ; Pick y-coordinate (high byte) of star from table
-                jsr RNDINVXY            ; Randomize signs of x and y coordinates of star
+                jsr RndInvXY            ; Randomize signs of x and y coordinates of star
 
                 txa                     ; Save space object index
                 tay                     ;
@@ -483,9 +483,9 @@ LOOP034         clc                     ; Place stars in z-coordinate intervals 
 
                 lda #99                 ; Init pixel row and column numbers to magic...
                 sta PIXELROWNEW,X       ; ...offscreen value (triggers automatic recalc in...
-                sta PIXELCOLUMN,X       ; ...GAMELOOP's calls to SCREENCOLUMN and SCREENROW)
+                sta PIXELCOLUMN,X       ; ...GAMELOOP's calls to ScreenColumn and ScreenRow)
 
-                jsr COPYPOSXY           ; Copy x and y coordinate from previous star in trail
+                jsr CopyPosXY           ; Copy x and y coordinate from previous star in trail
 
                 dex                     ; Decrement space object index to next star
                 cpx #NUMSPCOBJ_NORM     ; If index reaches minimum value...
@@ -495,4 +495,4 @@ SKIP073         dec L_TRAILCNT          ;
                 bpl LOOP034             ; Next star of star trail
 
                 stx TRAILIND            ; Save space object index of star trail's last star
-SKIP074         rts                     ; Return
+SKIP074         rts

@@ -24,8 +24,8 @@
 ;
 ; If one of our starship's view keys 'F' (Front), 'A' (Aft), 'G' (Galactic
 ; Chart), or 'L' (Long-Range Scan) have been pressed, the Display List is
-; modified accordingly in subroutine MODDLST ($ADF1) and a new star field of 12
-; stars is created with the help of subroutine INITPOSVEC ($B764). Code
+; modified accordingly in subroutine ModDLST ($ADF1) and a new star field of 12
+; stars is created with the help of subroutine InitPosVec ($B764). Code
 ; execution returns via subroutine UPDSCREEN ($B07B).
 ;
 ; If one of the 'T' (Tracking Computer), 'S' (Shields) or 'C' (Attack Computer)
@@ -33,7 +33,7 @@
 ; title line is updated with the corresponding title phrase. The beeper sound
 ; pattern ACKNOWLEDGE is played in subroutine BEEP ($B3A6). The tracking letter
 ; of the Control Panel Display is updated and the PLAYFIELD is cleared in
-; subroutine CLRPLAYFIELD ($AE0D). If the Attack Computer is on, the Front or
+; subroutine ClrPlayfield ($AE0D). If the Attack Computer is on, the Front or
 ; Aft view cross hairs are drawn, depending on the current view of our starship,
 ; via subroutine DRAWLINES ($A76F).
 ;
@@ -82,7 +82,7 @@
 ;
 ; (2)  UPDSCREEN ($B07B), which draws the cross hairs and the Attack Computer
 ;      Display, and then sets the tracking letter of the Control Panel Display.
-;      It is entered from subroutine DOCKING ($ACE6).
+;      It is entered from subroutine Docking ($ACE6).
 
 L_KEYCODE       = $6A                   ; Saves pressed keyboard code
 
@@ -128,7 +128,7 @@ SKIP149         lda DRAINRATETAB,X      ; Set Engines energy drain rate
                 sta DRAINENGINES        ;
                 lda VELOCITYTAB,X       ; Set new velocity
                 sta NEWVELOCITY         ;
-SKIP150         rts                     ; Return
+SKIP150         rts
 
 ;*** Handle 'F', 'A', 'L', 'G' keyboard keys (our starship's views) ************
 SKIP151         cpx #14                 ; Skip section if keyboard code does not match
@@ -141,10 +141,10 @@ SETVIEW         lda VIEWMODETAB-10,X    ; Store our starship's view type
                 ldy DLSTFRAGOFFTAB-10,X ; Get DL fragment offset (Front, Aft, LRS, GC)
                 ldx #$02                ; Switch to corresponding view
                 lda #$08                ;
-                jsr MODDLST             ;
+                jsr ModDLST             ;
 
                 ldx #NUMSPCOBJ_NORM-1   ; Create new star field of 12 stars
-LOOP052         jsr INITPOSVEC          ;
+LOOP052         jsr InitPosVec          ;
                 dex                     ;
                 cpx #NUMSPCOBJ_PL       ;
                 bcs LOOP052             ;
@@ -174,7 +174,7 @@ UPDSCREEN       ldx #ccs_T              ; Get custom char 'T' (entry point TRANS
                 inx                     ; Get custom char 'C'
 
 SKIP154         stx TRACKC1             ; Store tracking character in Control Panel Display
-                jsr CLRPLAYFIELD        ; Clear PLAYFIELD
+                jsr ClrPlayfield        ; Clear PLAYFIELD
                 lda DRAINATTCOMP        ; Return if Attack Computer off
                 beq SKIP150             ;
 
@@ -244,7 +244,7 @@ SKIP158         cpx #19                 ; Skip if keyboard code does not match
                 eor #$01                ; ... Control Panel Display
                 and #$01                ;
                 sta TRACKDIGIT          ;
-SKIP159         rts                     ; Return
+SKIP159         rts
 
 ;*** Handle 'P' keyboard key (Pause) *******************************************
 SKIP160         bne SKIP161             ; Skip if keyboard code does not match
@@ -252,7 +252,7 @@ SKIP160         bne SKIP161             ; Skip if keyboard code does not match
                 lda PORTA               ; Push joystick to resume action
                 cmp #$FF                ;
                 beq SKIP160             ; (!)
-                rts                     ; Return
+                rts
 
 ;*** Handle 'INV' keyboard key (Abort Mission) *********************************
 SKIP161         ldy #$76                ; Preload title phrase "MISSION ABORTED..."

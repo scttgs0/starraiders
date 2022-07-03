@@ -1,6 +1,6 @@
 ;*******************************************************************************
 ;*                                                                             *
-;*                                  INITEXPL                                   *
+;*                                  InitExpl                                   *
 ;*                                                                             *
 ;*                            Initialize explosion                             *
 ;*                                                                             *
@@ -27,7 +27,7 @@
 ; because the exploding PLAYER is 8 pixels wide. The PLAYER column number
 ; represents the left edge of the PLAYER shape. When using a random number in
 ; 0..15, half of the pixels are located off to the right of the PLAYER, outside
-; the PLAYER area. Suggested fix: Replace instruction and #$0F with and #$07. 
+; the PLAYER area. Suggested fix: Replace instruction and #$0F with and #$07.
 ;
 ; The pixel row number of each explosion fragment is initialized to
 ;
@@ -56,7 +56,12 @@
 ;     1 -> Explosion of PLAYER1 (Zylon ship 1)
 ;     2 -> Explosion of PLAYER2 (Zylon photon torpedo, starbase, or meteor)
 
-INITEXPL        lda #128                ; Explosion lifetime := 128 game loops
+
+;======================================
+; Initialize explosion
+;======================================
+InitExpl        .proc
+                lda #128                ; Explosion lifetime := 128 game loops
                 sta EXPLLIFE            ;
 
                 ldx #NUMSPCOBJ_ALL-1    ; Max index of space objects (for explosion frags)
@@ -64,7 +69,7 @@ INITEXPL        lda #128                ; Explosion lifetime := 128 game loops
 
                                         ; Loop over all explosion fragment position vectors
                                         ; (index 48..17)
-LOOP040         lda RANDOM              ; PIXEL COLUMN NUM := PLAYER column - 48 + RND(0..15)
+_next1          lda RANDOM              ; PIXEL COLUMN NUM := PLAYER column - 48 + RND(0..15)
                 and #$0F                ; (!)
                 adc PL0COLUMN,Y         ;
                 sbc #48                 ;
@@ -77,7 +82,7 @@ LOOP040         lda RANDOM              ; PIXEL COLUMN NUM := PLAYER column - 48
                 sbc #16                 ;
                 sta PIXELROWNEW,X       ;
 
-                jsr COPYPOSVEC          ; Copy position vector of PLAYER to explosion frag
+                jsr CopyPosVec          ; Copy position vector of PLAYER to explosion frag
 
                 lda RANDOM              ; z-velocity := RND(-7..+7) <KM/H>
                 and #NEG|7              ;
@@ -91,12 +96,15 @@ LOOP040         lda RANDOM              ; PIXEL COLUMN NUM := PLAYER column - 48
 
                 dex                     ; Next explosion fragment position vector
                 cpx #16                 ;
-                bne LOOP040             ;
-                rts                     ; Return
+                bne _next1              ;
+
+                rts
+                .endproc
+
 
 ;*******************************************************************************
 ;*                                                                             *
-;*                                 COPYPOSVEC                                  *
+;*                                 CopyPosVec                                  *
 ;*                                                                             *
 ;*                           Copy a position vector                            *
 ;*                                                                             *
@@ -107,23 +115,33 @@ LOOP040         lda RANDOM              ; PIXEL COLUMN NUM := PLAYER column - 48
 ; Copies a position vector.
 ;
 ; Actually, this subroutine copies the z-coordinate only, then code execution
-; continues into subroutine COPYPOSXY ($ACC1) to copy the x and y coordinate.
+; continues into subroutine CopyPosXY ($ACC1) to copy the x and y coordinate.
 ;
 ; INPUT
 ;
 ;   X = Destination position vector index. Used values are: 0..48.
 ;   Y = Source position vector index. Used values are: 0..48.
 
-COPYPOSVEC      lda ZPOSSIGN,Y          ;
-                sta ZPOSSIGN,X          ;
-                lda ZPOSHI,Y            ;
-                sta ZPOSHI,X            ;
-                lda ZPOSLO,Y            ;
-                sta ZPOSLO,X            ;
+
+;======================================
+; Copy a position vector
+;======================================
+CopyPosVec      .proc
+                lda ZPOSSIGN,Y
+                sta ZPOSSIGN,X
+                lda ZPOSHI,Y
+                sta ZPOSHI,X
+                lda ZPOSLO,Y
+                sta ZPOSLO,X
+
+                .endproc
+
+                ;[fall-through]
+
 
 ;*******************************************************************************
 ;*                                                                             *
-;*                                  COPYPOSXY                                  *
+;*                                  CopyPosXY                                  *
 ;*                                                                             *
 ;*          Copy x and y components (coordinates) of position vector           *
 ;*                                                                             *
@@ -138,16 +156,22 @@ COPYPOSVEC      lda ZPOSSIGN,Y          ;
 ;   X = Destination position vector index. Used values are: 0..48.
 ;   Y = Source position vector index. Used values are: 0..48.
 
-COPYPOSXY       lda XPOSSIGN,Y          ;
-                sta XPOSSIGN,X          ;
-                lda XPOSHI,Y            ;
-                sta XPOSHI,X            ;
-                lda YPOSSIGN,Y          ;
-                sta YPOSSIGN,X          ;
-                lda YPOSHI,Y            ;
-                sta YPOSHI,X            ;
-                lda XPOSLO,Y            ;
-                sta XPOSLO,X            ;
-                lda YPOSLO,Y            ;
-                sta YPOSLO,X            ;
-SKIP111         rts                     ; Return
+
+;======================================
+; Copy coordinates of position vector
+;======================================
+CopyPosXY       .proc
+                lda XPOSSIGN,Y
+                sta XPOSSIGN,X
+                lda XPOSHI,Y
+                sta XPOSHI,X
+                lda YPOSSIGN,Y
+                sta YPOSSIGN,X
+                lda YPOSHI,Y
+                sta YPOSHI,X
+                lda XPOSLO,Y
+                sta XPOSLO,X
+                lda YPOSLO,Y
+                sta YPOSLO,X
+_XIT            rts
+                .endproc

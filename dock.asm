@@ -1,6 +1,6 @@
 ;*******************************************************************************
 ;*                                                                             *
-;*                                   DOCKING                                   *
+;*                                   Docking                                   *
 ;*                                                                             *
 ;*      Handle docking at starbase, launch and return of transfer vessel       *
 ;*                                                                             *
@@ -153,15 +153,21 @@
 ; ORBIT ESTABLISHED or RETURN TRANSFER VESSEL then the message "DOCKING ABORTED"
 ; is displayed and the docking state is set to NOT DOCKED.
 
-DOCKING         lda ISSTARBASESECT      ; Return if not in starbase sector
-                beq SKIP111             ;
+
+;======================================
+; Handle docking at starbase, launch
+; and return of transfer vessel
+;======================================
+Docking         .proc
+                lda ISSTARBASESECT      ; Return if not in starbase sector
+                beq CopyPosXY._XIT      ;
 
                 lda SHIPVIEW            ; Skip if not in Front view
-                bne SKIP112             ;
+                bne _1                  ;
                 lda #$14                ; GTIA: Enable PLAYER4, prio: PFs > PLs > BGR (!)
                 sta PRIOR               ; (Cross hairs in front of PLAYERs)
 
-SKIP112         lda #2                  ; Track starbase (PLAYER2)
+_1              lda #2                  ; Track starbase (PLAYER2)
                 sta TRACKDIGIT          ;
 
 ;** Initialize starbase shape **************************************************
@@ -176,47 +182,47 @@ SKIP112         lda #2                  ; Track starbase (PLAYER2)
 
                 ldx vCurrentSector      ; Skip if starbase in current sector
                 ldy gcMemMap,X          ;
-                bmi SKIP113             ;
+                bmi _2                  ;
 
                 lda #0                  ; Prep starbase lifetime := 0 game loops (fast death)
 
-SKIP113         sta PL0LIFE             ; PLAYER0 lifetime := either 0 or 255 game loops
+_2              sta PL0LIFE             ; PLAYER0 lifetime := either 0 or 255 game loops
                 sta PL1LIFE             ; PLAYER1 lifetime := either 0 or 255 game loops
                 sta PL2LIFE             ; PLAYER2 lifetime := either 0 or 255 game loops
                 sta ISSTARBASESECT      ; Store starbase-in-sector flag
-                bmi SKIP114             ; Skip if starbase in current sector
+                bmi _3                  ; Skip if starbase in current sector
 
                 ldy #2                  ; Init explosion at PLAYER2 (STARBASE CENTER)
-                jsr INITEXPL            ;
+                jsr InitExpl            ;
 
                 ldx #$0A                ; Play noise sound pattern SHIELD EXPLOSION, return
                 jmp NOISE               ;
 
 ;*** Keep minimum distance to starbase *****************************************
-SKIP114         lda PL2ZPOSHI           ; Skip if starbase z-coordinate > +255 (+$00**) <KM>
-                bne SKIP115             ;
+_3              lda PL2ZPOSHI           ; Skip if starbase z-coordinate > +255 (+$00**) <KM>
+                bne _4                  ;
 
                 lda PL2ZPOSLO           ; Approach starbase not closer than +32 (+$0020) <KM>
                 cmp #32                 ;
-                bcs SKIP115             ;
+                bcs _4                  ;
                 inc PL2ZPOSLO           ; ...else push starbase back
 
 ;*** Check if in docking range *************************************************
-SKIP115         lda PL2COLUMN           ; Abort docking if PLAYER column number of...
+_4              lda PL2COLUMN           ; Abort docking if PLAYER column number of...
                 sec                     ; ...PLAYER2 (STARBASE CENTER) not in 120..135.
                 sbc #120                ; (!)
                 cmp #16                 ;
-                bcs SKIP116             ;
+                bcs _5                  ;
 
                 lda PL2ROWNEW           ; Abort docking if PLAYER row number of...
                 sec                     ; ...PLAYER2 (STARBASE CENTER) not in 104..119.
                 sbc #104                ; (!)
                 cmp #16                 ;
-                bcs SKIP116             ;
+                bcs _5                  ;
 
                 lda PL2ZPOSHI           ; Abort docking if...
                 cmp #2                  ; ... z-coordinate of starbase >= +512 (+$02**) <KM>
-                bcs SKIP116             ;
+                bcs _5                  ;
 
                 lda PL2ZPOSSIGN         ; Abort docking...
                 and PL2YPOSSIGN         ; ...if starbase not in front and upper screen half
@@ -224,37 +230,38 @@ SKIP115         lda PL2COLUMN           ; Abort docking if PLAYER column number 
                 ora VELOCITYLO          ; ...if our starship's velocity not zero
                 ora PL2YPOSHI           ; ...if starbase not roughly vertically centered
                 ora NEWVELOCITY         ; ...if our starship's new velocity not zero
-                beq SKIP119             ; Else skip and handle docking
+                beq _7                  ; Else skip and handle docking
 
 ;*** Docking aborted ***********************************************************
-SKIP116         lda DOCKSTATE           ; Skip if DOCKSTATE is NOT DOCKED, TRANSFER COMPLETE
+_5              lda DOCKSTATE           ; Skip if DOCKSTATE is NOT DOCKED, TRANSFER COMPLETE
                 cmp #2                  ;
-                bcc SKIP117             ;
+                bcc _6                  ;
 
-                ldy #$1F                ; Set title phrase "DOCKING ABORTED"
+                ldy #$1F                ; Set title phrase "Docking ABORTED"
                 jsr SETTITLE            ;
 
-SKIP117         lda #0                  ; DOCKSTATE := NOT DOCKED
+_6              lda #0                  ; DOCKSTATE := NOT DOCKED
                 sta DOCKSTATE           ;
-SKIP118         rts                     ; Return
+_XIT            rts
 
 ;*** Docking successful, check docking state ***********************************
-SKIP119         bit DOCKSTATE           ; Check DOCKSTATE
-                bvs SKIP120             ; If DOCKSTATE = ORBIT ESTABLISHED hide title line
-                bmi SKIP122             ; If DOCKSTATE = RETURN TRANSFER VESSEL return it
+_7              bit DOCKSTATE           ; Check DOCKSTATE
+                bvs _8                  ; If DOCKSTATE = ORBIT ESTABLISHED hide title line
+                bmi _9                  ; If DOCKSTATE = RETURN TRANSFER VESSEL return it
+
                 lda DOCKSTATE           ;
-                bne SKIP118             ; Return if DOCKSTATE not NOT DOCKED
+                bne _XIT                ; Return if DOCKSTATE not NOT DOCKED
                 dec DOCKSTATE           ; DOCKSTATE := ORBIT ESTABLISHED
 
                 ldy #$1C                ; Set title phrase "ORBIT ESTABLISHED" and return
                 jmp SETTITLE            ;
 
 ;*** Orbit established *********************************************************
-SKIP120         ldx #0                  ; Enqueue new, empty title phrase
+_8              ldx #0                  ; Enqueue new, empty title phrase
                 stx NEWTITLEPHR         ;
 
                 ldy TITLEPHR            ; Return if "ORBIT ESTABLISHED" still displayed
-                bne SKIP118             ;
+                bne _XIT                ;
 
 ;*** Launch transfer vessel ****************************************************
                 lda #shapeTRANSVSSL     ; PLAYER4 is TRANSFER VESSEL (shape 5)
@@ -276,11 +283,11 @@ SKIP120         ldx #0                  ; Enqueue new, empty title phrase
                 sta DOCKSTATE           ;
                 sta PL4YVEL             ;
                 sta PL4LIFE             ; Transfer vessel lifetime := 129 game loops
-SKIP121         rts                     ; Return
+_XIT2           rts
 
 ;*** Return transfer vessel ****************************************************
-SKIP122         lda PL4ZPOSSIGN         ; Return if transfer vessel in front of our starship
-                bne SKIP121             ;
+_9              lda PL4ZPOSSIGN         ; Return if transfer vessel in front of our starship
+                bne _XIT2               ;
 
                 ldx #$0C                ; Play beeper sound pattern ACKNOWLEGDE
                 jsr BEEP                ;
@@ -289,16 +296,16 @@ SKIP122         lda PL4ZPOSSIGN         ; Return if transfer vessel in front of 
                 jsr SETTITLE            ;
 
                 ldx #5                  ; Repair all 6 subsystems
-LOOP041         lda PANELTXTTAB+73,X    ;
+_next1          lda PANELTXTTAB+73,X    ;
                 sta GCSTATPHO,X         ;
                 dex                     ;
-                bpl LOOP041             ;
+                bpl _next1              ;
 
                 lda #ccs_Col2|ccs_9     ; Set starship's ENERGY readout to "9999" in COLOR2
                 ldx #3                  ;
-LOOP042         sta ENERGYD1,X          ;
+_next2          sta ENERGYD1,X          ;
                 dex                     ;
-                bpl LOOP042             ;
+                bpl _next2              ;
 
                 lda #7                  ; Move transfer vessel back toward starbase:
                 sta PL4ZVEL             ; x-velocity := -1 <KM/H>
@@ -309,3 +316,5 @@ LOOP042         sta ENERGYD1,X          ;
 
                 sta DOCKSTATE           ; DOCKSTATE := TRANSFER COMPLETE
                 jmp UPDSCREEN           ; Update screen and return
+
+                .endproc

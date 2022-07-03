@@ -544,7 +544,7 @@ o   Velocity vectors 5..48 belong to space objects represented by PLAYFIELD
           0) with other PLAYERs. Used values are:
               $00 -> No collision
             > $00 -> PLAYER3 has collided with another PLAYER space object. See
-                     subroutine COLLISION ($AF3D) for details which PLAYER has
+                     subroutine Collision ($AF3D) for details which PLAYER has
                      been hit by PLAYER3.
 
  $83      PL4HIT
@@ -553,7 +553,7 @@ o   Velocity vectors 5..48 belong to space objects represented by PLAYFIELD
           1) with other PLAYERs. Used values are:
               $00 -> No collision
             > $00 -> PLAYER4 has collided with another PLAYER space object. See
-                     subroutine COLLISION ($AF3D) for details which PLAYER has
+                     subroutine Collision ($AF3D) for details which PLAYER has
                      been hit by PLAYER4.
 
  $84      OLDTRIG0
@@ -1175,7 +1175,7 @@ o   Velocity vectors 5..48 belong to space objects represented by PLAYFIELD
  $E2      NOISEZYLONTIM
 
           Delay timer to trigger the ZYLON EXPLOSION noise sound pattern. It is
-          set in subroutine COLLISION ($AF3D) when an impact of one of our
+          set in subroutine Collision ($AF3D) when an impact of one of our
           starship's photon torpedoes into a target is imminent. The timer is
           decremented every TICK during the execution of the Vertical Blank
           Interrupt handler VBIHNDLR ($A6D1). When the timer value reaches 0
