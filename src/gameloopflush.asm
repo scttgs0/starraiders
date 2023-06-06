@@ -177,7 +177,7 @@ _1              and #$03                ; Increment COUNT8
                 bit GCSTATSHL           ; Skip if Shields are OK
                 bpl _3                  ;
                 bvs _2                  ; Skip if Shields are destroyed
-                lda RANDOM              ; If Shields are damaged, Shields colors are...
+                .randomByte             ; If Shields are damaged, Shields colors are...
                 cmp #200                ; ...unchanged with probability of 78% (200:256)
                 bcc _4                  ;
 
@@ -312,7 +312,7 @@ _16             lda #7                  ; Reset hunting timer
                 sta HUNTTIM             ;
 
                 ldy #127                ; Loop over 127(+1) randomly picked sectors
-_next4          lda RANDOM              ;
+_next4          .randomByte             ;
                 and #$7F                ;
                 tax                     ;
                 lda GCMEMMAP,X          ; Skip if starbase sector found
@@ -382,7 +382,7 @@ _19             ldy GCMEMMAP,X          ; X contains current sector
                 cpy #$0A                ; Next sector if it has marker bit B5 set (!)
                 bcs _next6              ;
 
-                lda RANDOM              ; Get random number
+                .randomByte             ; Get random number
                 cmp MOVEPROBTAB,Y       ; Get movement probability
                 bcs _next6              ; Next sector if movement probability < random number
 

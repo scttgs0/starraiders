@@ -70,13 +70,13 @@ INITEXPL        .proc
 
                                         ; Loop over all explosion fragment position vectors
                                         ; (index 48..17)
-_next1          lda RANDOM              ; PIXEL COLUMN NUM := PLAYER column - 48 + RND(0..15)
+_next1          .randomByte             ; PIXEL COLUMN NUM := PLAYER column - 48 + RND(0..15)
                 and #$0F                ; (!)
                 adc PL0COLUMN,Y         ;
                 sbc #48                 ;
                 sta PIXELCOLUMN,X       ;
 
-                lda RANDOM              ; PIXEL ROW NUM := (PLAYER row + RND(0..15)) / 2 - 16
+                .randomByte             ; PIXEL ROW NUM := (PLAYER row + RND(0..15)) / 2 - 16
                 and #$0F                ;
                 adc PL0ROWNEW,Y         ;
                 lsr                     ; (!)
@@ -85,13 +85,13 @@ _next1          lda RANDOM              ; PIXEL COLUMN NUM := PLAYER column - 48
 
                 jsr CopyPositionVector          ; Copy position vector of PLAYER to explosion frag
 
-                lda RANDOM              ; z-velocity := RND(-7..+7) <KM/H>
+                .randomByte             ; z-velocity := RND(-7..+7) <KM/H>
                 and #NEG|7              ;
                 sta ZVEL,X              ;
-                lda RANDOM              ; x-velocity := RND(-7..+7) <KM/H>
+                .randomByte             ; x-velocity := RND(-7..+7) <KM/H>
                 and #NEG|7              ;
                 sta XVEL,X              ;
-                lda RANDOM              ; y-velocity := RND(-7..+7) <KM/H>
+                .randomByte             ; y-velocity := RND(-7..+7) <KM/H>
                 and #NEG|7              ;
                 sta YVEL,X              ;
 
@@ -169,16 +169,14 @@ CopyPositionXY .proc
 
                 lda XPOSHI,Y
                 sta XPOSHI,X
+                lda XPOSLO,Y
+                sta XPOSLO,X
 
                 lda YPOSSIGN,Y
                 sta YPOSSIGN,X
 
                 lda YPOSHI,Y
                 sta YPOSHI,X
-
-                lda XPOSLO,Y
-                sta XPOSLO,X
-
                 lda YPOSLO,Y
                 sta YPOSLO,X
 

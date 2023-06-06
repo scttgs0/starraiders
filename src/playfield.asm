@@ -43,7 +43,7 @@ MODDLST         .proc
                 sei                     ; Disable IRQ
                 sta L_NUMBYTES          ; Save number of bytes to copy
 
-_next1          lda VCOUNT              ; Wait for ANTIC line counter >= 124 (PLAYFIELD...
+_next1          ;--lda VCOUNT              ; Wait for ANTIC line counter >= 124 (PLAYFIELD...
                 cmp #124                ; ...bottom) before changing the Display List
                 bcc _next1              ;
 

@@ -103,7 +103,7 @@ KEYBOARD        .proc
                 sta KEYCODE             ; Clear keyboard code
 
                 lda #$11                ; GTIA: Enable PLAYER4, prio: PLs > PFs > BGR
-                sta PRIOR               ; (PLAYERs in front of stars - and cross hairs)
+                ;--sta PRIOR               ; (PLAYERs in front of stars - and cross hairs)
 
 ;*** Search keyboard code in lookup table **************************************
 
@@ -275,7 +275,7 @@ _XIT2           rts
 ;*** Handle 'P' keyboard key (Pause) *******************************************
 _4              bne _5                  ; Skip if keyboard code does not match
 
-                lda PORTA               ; Push joystick to resume action
+                ;--lda PORTA               ; Push joystick to resume action
                 cmp #$FF                ;
                 beq _4                  ; (!)
                 rts

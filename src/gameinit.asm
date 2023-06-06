@@ -108,12 +108,13 @@ InitGame        .proc
 ; Initialize game (Cold start)
 ;--------------------------------------
 COLD            lda #0                  ;
-                sta SKCTL               ; POKEY: Initialization
+                ;--sta SKCTL               ; POKEY: Initialization
                 sta IDLECNTHI           ; Reset idle counter
                 sta MISSIONLEVEL        ; Mission level := NOVICE mission
                 sta FKEYCODE            ; Clear function key code
                 lda #$03                ; POKEY: Enable keyboard scan and debounce
-                sta SKCTL               ;
+                ;--sta SKCTL               ;
+
 
 ;--------------------------------------
 ; Entry point when SELECT function
@@ -140,13 +141,13 @@ START           sty NEWTITLEPHR         ; Enqueue new title phrase
 
                 lda #0                  ; Clear custom chip registers, zero page variables
                 tax                     ;
-_next1          sta HPOSP0,X            ; Clear $D000..$D0FF (GTIA registers)
-                sta DMACTL,X            ; Clear $D400..$D4FF (ANTIC registers)
+_next1          ;--sta $D000,X             ; Clear $D000..$D0FF (GTIA registers)
+                ;--sta $D400,X             ; Clear $D400..$D4FF (ANTIC registers)
                 cpx #$0F                ;
                 bcs _1                  ;
-                sta AUDF1,X             ; Clear $D200..$D20E (POKEY registers)
+                ;--sta $D200,X             ; Clear $D200..$D20E (POKEY registers)
 
-_1              sta PORTA,X             ; Clear $D300..$D3FF (PIA registers)
+_1              ;--sta $D300,X             ; Clear $D300..$D3FF (PIA registers)
                                         ; Clear $0067..$0166 (zero page game variables)
 
                 .byte $9D               ; HACK: Force ISVBISYNC,X with 16-bit address
@@ -163,25 +164,25 @@ _1              sta PORTA,X             ; Clear $D300..$D3FF (PIA registers)
                 jsr CLRMEM              ;
 
                 lda #<IRQHNDLR          ; Set IRQ handler (VIMIRQ)
-                sta VIMIRQ              ;
+                ;--sta VIMIRQ              ;
                 lda #>IRQHNDLR          ;
-                sta VIMIRQ+1            ;
+                ;--sta VIMIRQ+1            ;
 
                 lda #<VBIHNDLR          ; Set VBI and DLI handler (VVBLKI and VDSLST)
-                sta VVBLKI              ;
+                ;--sta VVBLKI              ;
                 lda #<DLSTHNDLR         ;
-                sta VDSLST              ;
+                ;--sta VDSLST              ;
                 lda #>VBIHNDLR          ;
-                sta VVBLKI+1            ;
+                ;--sta VVBLKI+1            ;
                 lda #>DLSTHNDLR         ;
-                sta VDSLST+1            ;
+                ;--sta VDSLST+1            ;
 
                 lda #$04                ; PIA: Enable PORTA (Joystick 0)
-                sta PACTL               ;
+                ;--sta PACTL               ;
                 lda #$11                ; GTIA: Enable PLAYER4, prio: PLs > PFs > BGR (!)
-                sta PRIOR               ; (PLAYERs in front of stars - and cross hairs)
+                ;--sta PRIOR               ; (PLAYERs in front of stars - and cross hairs)
                 lda #$03                ; GTIA: Enable DMA for PLAYERs and MISSILEs
-                sta GRACTL              ;
+                ;--sta GRACTL              ;
 
                 jsr INITIALIZE          ; Init Display List, tables, Galactic Chart, etc.
 
@@ -199,15 +200,15 @@ _1              sta PORTA,X             ; Clear $D300..$D3FF (PIA registers)
                 sta NEWVELOCITY         ;
 
                 lda #<DSPLST            ; ANTIC: Set Display List
-                sta DLIST               ;
+                ;--sta DLIST               ;
                 lda #>DSPLST            ;
-                sta DLIST+1             ;
+                ;--sta DLIST+1             ;
 
                 lda #$3E                ; ANTIC: Enable Display List DMA, single-line PM
-                sta DMACTL              ; resolution, PM DMA, normal-width PLAYFIELD
+                ;--sta DMACTL              ; resolution, PM DMA, normal-width PLAYFIELD
 
                 lda #0                  ; ANTIC: Set PM memory base address
-                sta PMBASE              ;
+                ;--sta PMBASE              ;
 
                 lda #NUMSPCOBJ_NORM-1   ; Set normal number of space objects
                 sta MAXSPCOBJIND        ; (5 PLAYER spc objs + 12 PLAYFIELD spc objs (stars))
@@ -217,12 +218,12 @@ _1              sta PORTA,X             ; Clear $D300..$D3FF (PIA registers)
                 jsr SETTITLE            ;
 
                 lda #$40                ; POKEY: Enable keyboard interrupt (IRQ)
-                sta IRQEN               ;
+                ;--sta IRQEN               ;
 
                 cli                     ; Enable all IRQs
 
                 lda #$C0                ; ANTIC: Enable DLI and VBI
-                sta NMIEN               ;
+                ;--sta NMIEN               ;
 
                 .endproc
 

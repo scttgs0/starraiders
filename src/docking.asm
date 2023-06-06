@@ -166,7 +166,7 @@ Docking         .proc
                 lda SHIPVIEW            ; Skip if not in Front view
                 bne _1                  ;
                 lda #$14                ; GTIA: Enable PLAYER4, prio: PFs > PLs > BGR (!)
-                sta PRIOR               ; (Cross hairs in front of PLAYERs)
+                ;--sta PRIOR               ; (Cross hairs in front of PLAYERs)
 
 _1              lda #2                  ; Track starbase (PLAYER2)
                 sta TRACKDIGIT          ;

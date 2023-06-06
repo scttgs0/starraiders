@@ -199,7 +199,7 @@ _1              lda #3                  ; Track Hyperwarp Target Marker (PLAYER3
                 lda MISSIONLEVEL        ; Skip if NOVICE mission
                 beq _3                  ;
 
-                lda RANDOM              ; Prep random number
+                .randomByte             ; Prep random number
                 ldy SHIPVIEW            ; Skip if in Front view
                 beq _2                  ;
 
@@ -210,12 +210,12 @@ _2              cmp #16                 ; Return in 94% (240:256) of game loops
                 bcs _XIT1               ;
 
 ;*** Veer off Hyperwarp Target Marker and return *******************************
-_3              lda RANDOM              ; Prep random x-velocity of Hyperwarp Target Marker
+_3              .randomByte             ; Prep random x-velocity of Hyperwarp Target Marker
                 ora #$10                ; Velocity value >= 16 <KM/H>
                 and VEERMASK            ; Limit velocity value by mission level
                 sta PL3XVEL             ; PLAYER3 x-velocity := velocity value
 
-                lda RANDOM              ; Prep random y-velocity of Hyperwarp Target Marker
+                .randomByte             ; Prep random y-velocity of Hyperwarp Target Marker
                 ora #$10                ; Velocity value >= 16 <KM/H>
                 and VEERMASK            ; Limit velocity value by mission level
                 sta PL3YVEL             ; PLAYER3 y-velocity := velocity value
@@ -278,7 +278,7 @@ _next1          lda #0                  ; Loop over all coordinates of starbase
                 sta PL2ZVEL,Y           ; Starbase velocity vector component := 0 <KM/H>
                 lda #1                  ;
                 sta PL2ZPOSSIGN,Y       ; Starbase coordinate sign := + (positive)
-                lda RANDOM              ; Prep random number...
+                .randomByte             ; Prep random number...
                 and VICINITYMASK        ; ...limit number range by vicinity mask, then...
                 sta PL2ZPOSHI,Y         ; ...store in starbase coordinate (high byte)
 
@@ -492,7 +492,7 @@ INITTRAIL       .proc
                 lda #$12                ; Star z-coordinate := >= +$12** (+4608) <KM>
                 sta L_RANGE+1           ;
 
-                lda RANDOM              ; Calc random index to pick initial star coordinates
+                .randomByte             ; Calc random index to pick initial star coordinates
                 and #$03                ;
                 tay                     ;
                 lda WARPSTARXTAB,Y      ; Pick x-coordinate (high byte) of star from table

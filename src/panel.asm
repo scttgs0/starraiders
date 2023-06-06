@@ -69,7 +69,7 @@ _2              lda WARPSTATE           ; Skip if hyperwarp engaged
                 bpl _3                  ;
 
                 lda NEWVELOCITY         ; Store RND(0..current velocity) to current velocity
-                and RANDOM              ;
+                and randomREG           ;
                 sta VELOCITYLO          ;
 
 _3              ldy #VELOCD1-PANELTXT-1 ; Update digits of VELOCITY readout
