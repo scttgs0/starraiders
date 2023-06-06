@@ -56,7 +56,7 @@ _next1          lda NOISEPATTAB,X       ;
                 lda NOISEPATTAB,X       ; Copy AUDCTL from noise sound pattern table
                 ;--sta AUDCTL              ;
                 lda NOISEPATTAB+1,X     ; Copy AUDF3 from noise sound pattern table
-                ;--sta AUDF3               ;
+                sta SID1_FREQ3          ;
 
 _XIT            rts
                 .endproc
