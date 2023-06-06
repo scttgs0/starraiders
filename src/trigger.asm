@@ -64,12 +64,17 @@
 ;======================================
 TRIGGER         .proc
                 lda OLDTRIG0            ; Prep last trigger state
+                pha
 
-                ;--ldy TRIG0               ; Copy current trigger state
+                lda JOYSTICK0
+                and #JOY_BUTTON0
+                tay                     ; Copy current trigger state
+                pla
+
                 sty OLDTRIG0            ;
                 bne _XIT1               ; Return if trigger currently not pressed
 
-                sty IDLECNTHI           ; Reset idle counter
+                sty IDLECNTHI           ; Reset idle counter    ; TODO:
 
                 ldx WARPSTATE           ; Return if hyperwarp engaged
                 bne _XIT1               ;
