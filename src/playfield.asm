@@ -1,3 +1,4 @@
+
 ;*******************************************************************************
 ;*                                                                             *
 ;*                                   MODDLST                                   *
@@ -34,24 +35,33 @@
 
 L_NUMBYTES      = $6A                   ; Number of bytes to copy
 
-MODDLST         sei                     ; Disable IRQ
+
+;======================================
+; Modify Display List
+;======================================
+MODDLST         .proc
+                sei                     ; Disable IRQ
                 sta L_NUMBYTES          ; Save number of bytes to copy
 
-LOOP043         lda VCOUNT              ; Wait for ANTIC line counter >= 124 (PLAYFIELD...
+_next1          lda VCOUNT              ; Wait for ANTIC line counter >= 124 (PLAYFIELD...
                 cmp #124                ; ...bottom) before changing the Display List
-                bcc LOOP043             ;
+                bcc _next1              ;
 
-LOOP044         lda DLSTFRAG,Y          ; Load byte from Display List fragment table
+_next2          lda DLSTFRAG,Y          ; Load byte from Display List fragment table
                 iny                     ;
-                bpl SKIP123             ; Skip if fragment table index < $80
+                bpl _1                  ; Skip if fragment table index < $80
+
                 lda #$0D                ; Prep Display List instruction $0D (GRAPHICS7)
-SKIP123         sta DSPLST,X            ; Store byte in Display List
+_1              sta DSPLST,X            ; Store byte in Display List
+
                 inx                     ;
                 dec L_NUMBYTES          ;
-                bne LOOP044             ; Copy next byte
+                bne _next2              ; Copy next byte
 
                 cli                     ; Enable IRQ
-                rts                     ; Return
+                rts
+                .endproc
+
 
 ;*******************************************************************************
 ;*                                                                             *
@@ -69,7 +79,14 @@ SKIP123         sta DSPLST,X            ; Store byte in Display List
 ; execution continues into subroutine CLRMEM ($AE0F) where the memory is
 ; actually cleared.
 
+
+;======================================
+; Clear PLAYFIELD memory
+;======================================
 CLRPLAYFIELD    lda #$10
+
+                ;[fall-through]
+
 
 ;*******************************************************************************
 ;*                                                                             *
@@ -84,7 +101,7 @@ CLRPLAYFIELD    lda #$10
 ; Clears memory from a given start address to memory address $1FFF. This
 ; subroutine is called in the following situations:
 ;
-; (1)  In routine INITCOLD ($A14A) at the beginning of the game to initialize
+; (1)  In routine COLD ($A14A) at the beginning of the game to initialize
 ;      the game's variables 
 ;
 ; (2)  In subroutine CLRPLAYFIELD ($AE0D) to clear PLAYFIELD memory.
@@ -98,7 +115,12 @@ CLRPLAYFIELD    lda #$10
 ;     $02 -> Clear memory $0200..$1FFF during game initialization
 ;     $10 -> Clear PLAYFIELD memory $1000..$1FFF
 
-CLRMEM          sta MEMPTR+1            ; Store start address (high byte) to be cleared
+
+;======================================
+;
+;======================================
+CLRMEM          .proc
+                sta MEMPTR+1            ; Store start address (high byte) to be cleared
                 lda #0                  ; Store start address (low byte) to be cleared
                 tay                     ;
                 sta MEMPTR              ;
@@ -106,13 +128,15 @@ CLRMEM          sta MEMPTR+1            ; Store start address (high byte) to be 
                 sta ISINLOCKON          ; Clear lock-on flag
                 sta OLDMAXSPCOBJIND     ; Clear saved number of space objects
 
-LOOP045         sta (MEMPTR),Y          ; Clear memory location
+_next1          sta (MEMPTR),Y          ; Clear memory location
                 iny                     ;
-                bne LOOP045             ;
+                bne _next1              ;
 
                 inc MEMPTR+1            ; Next page (= 256-byte block)
                 ldy MEMPTR+1            ;
                 cpy #$20                ;
                 tay                     ;
-                bcc LOOP045             ; Loop until memory address $2000 reached
-                rts                     ; Return
+                bcc _next1              ; Loop until memory address $2000 reached
+
+                rts
+                .endproc

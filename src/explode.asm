@@ -1,3 +1,4 @@
+
 ;*******************************************************************************
 ;*                                                                             *
 ;*                                  INITEXPL                                   *
@@ -56,7 +57,12 @@
 ;     1 -> Explosion of PLAYER1 (Zylon ship 1)
 ;     2 -> Explosion of PLAYER2 (Zylon photon torpedo, starbase, or meteor)
 
-INITEXPL        lda #128                ; Explosion lifetime := 128 game loops
+
+;======================================
+; Initialize explosion
+;======================================
+INITEXPL        .proc
+                lda #128                ; Explosion lifetime := 128 game loops
                 sta EXPLLIFE            ;
 
                 ldx #NUMSPCOBJ_ALL-1    ; Max index of space objects (for explosion frags)
@@ -64,7 +70,7 @@ INITEXPL        lda #128                ; Explosion lifetime := 128 game loops
 
                                         ; Loop over all explosion fragment position vectors
                                         ; (index 48..17)
-LOOP040         lda RANDOM              ; PIXEL COLUMN NUM := PLAYER column - 48 + RND(0..15)
+_next1          lda RANDOM              ; PIXEL COLUMN NUM := PLAYER column - 48 + RND(0..15)
                 and #$0F                ; (!)
                 adc PL0COLUMN,Y         ;
                 sbc #48                 ;
@@ -73,11 +79,11 @@ LOOP040         lda RANDOM              ; PIXEL COLUMN NUM := PLAYER column - 48
                 lda RANDOM              ; PIXEL ROW NUM := (PLAYER row + RND(0..15)) / 2 - 16
                 and #$0F                ;
                 adc PL0ROWNEW,Y         ;
-                lsr A                   ; (!)
+                lsr                     ; (!)
                 sbc #16                 ;
                 sta PIXELROWNEW,X       ;
 
-                jsr COPYPOSVEC          ; Copy position vector of PLAYER to explosion frag
+                jsr CopyPositionVector          ; Copy position vector of PLAYER to explosion frag
 
                 lda RANDOM              ; z-velocity := RND(-7..+7) <KM/H>
                 and #NEG|7              ;
@@ -91,12 +97,14 @@ LOOP040         lda RANDOM              ; PIXEL COLUMN NUM := PLAYER column - 48
 
                 dex                     ; Next explosion fragment position vector
                 cpx #16                 ;
-                bne LOOP040             ;
-                rts                     ; Return
+                bne _next1              ;
+                rts
+                .endproc
+
 
 ;*******************************************************************************
 ;*                                                                             *
-;*                                 COPYPOSVEC                                  *
+;*                             CopyPositionVector                              *
 ;*                                                                             *
 ;*                           Copy a position vector                            *
 ;*                                                                             *
@@ -107,23 +115,35 @@ LOOP040         lda RANDOM              ; PIXEL COLUMN NUM := PLAYER column - 48
 ; Copies a position vector.
 ;
 ; Actually, this subroutine copies the z-coordinate only, then code execution
-; continues into subroutine COPYPOSXY ($ACC1) to copy the x and y coordinate.
+; continues into subroutine CopyPositionXY ($ACC1) to copy the x and y coordinate.
 ;
 ; INPUT
 ;
 ;   X = Destination position vector index. Used values are: 0..48.
 ;   Y = Source position vector index. Used values are: 0..48.
 
-COPYPOSVEC      lda ZPOSSIGN,Y          ;
-                sta ZPOSSIGN,X          ;
-                lda ZPOSHI,Y            ;
-                sta ZPOSHI,X            ;
-                lda ZPOSLO,Y            ;
-                sta ZPOSLO,X            ;
+
+;======================================
+; Copy a position vector
+;======================================
+CopyPositionVector .proc
+                lda ZPOSSIGN,Y
+                sta ZPOSSIGN,X
+
+                lda ZPOSHI,Y
+                sta ZPOSHI,X
+
+                lda ZPOSLO,Y
+                sta ZPOSLO,X
+
+                .endproc
+
+                ;[fall-through]
+
 
 ;*******************************************************************************
 ;*                                                                             *
-;*                                  COPYPOSXY                                  *
+;*                              CopyPositionXY                                 *
 ;*                                                                             *
 ;*          Copy x and y components (coordinates) of position vector           *
 ;*                                                                             *
@@ -138,16 +158,29 @@ COPYPOSVEC      lda ZPOSSIGN,Y          ;
 ;   X = Destination position vector index. Used values are: 0..48.
 ;   Y = Source position vector index. Used values are: 0..48.
 
-COPYPOSXY       lda XPOSSIGN,Y          ;
-                sta XPOSSIGN,X          ;
-                lda XPOSHI,Y            ;
-                sta XPOSHI,X            ;
-                lda YPOSSIGN,Y          ;
-                sta YPOSSIGN,X          ;
-                lda YPOSHI,Y            ;
-                sta YPOSHI,X            ;
-                lda XPOSLO,Y            ;
-                sta XPOSLO,X            ;
-                lda YPOSLO,Y            ;
-                sta YPOSLO,X            ;
-SKIP111         rts                     ; Return
+
+;======================================
+; Copy x and y components (coordinates)
+; of position vector
+;======================================
+CopyPositionXY .proc
+                lda XPOSSIGN,Y
+                sta XPOSSIGN,X
+
+                lda XPOSHI,Y
+                sta XPOSHI,X
+
+                lda YPOSSIGN,Y
+                sta YPOSSIGN,X
+
+                lda YPOSHI,Y
+                sta YPOSHI,X
+
+                lda XPOSLO,Y
+                sta XPOSLO,X
+
+                lda YPOSLO,Y
+                sta YPOSLO,X
+
+_XIT            rts
+                .endproc

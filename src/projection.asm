@@ -1,3 +1,4 @@
+
 ;*******************************************************************************
 ;*                                                                             *
 ;*                                 PROJECTION                                  *
@@ -40,7 +41,13 @@ L_DIVISOR       = $68                   ; Divisor (16-bit value)
 L_QUOTIENT      = $6D                   ; Division result (unsigned 8-bit value)
 L_LOOPCNT       = $6E                   ; Division loop counter. Used values are: 7..0.
 
-PROJECTION      lda #0                  ; Init quotient result
+
+;======================================
+; Calculate pixel column (or row) number
+; from position vector
+;======================================
+PROJECTION      .proc
+                lda #0                  ; Init quotient result
                 sta L_QUOTIENT          ;
 
                 lda #7                  ; Init division loop counter
@@ -50,49 +57,50 @@ PROJECTION      lda #0                  ; Init quotient result
                 ror DIVIDEND            ; (division by 2 to make B15 = 0?) (?)
 
                 lda SHIPVIEW            ; Skip if in Aft view
-                bne SKIP075             ;
+                bne _1                  ;
 
                 lda ZPOSHI,X            ; If in Front view -> DIVISOR := z-coordinate / 2
-                lsr A                   ; (division by 2 to make B15 = 0?) (?)
+                lsr                     ; (division by 2 to make B15 = 0?) (?)
                 sta L_DIVISOR+1         ;
                 lda ZPOSLO,X            ;
                 ror A                   ;
                 sta L_DIVISOR           ;
-                jmp LOOP035             ;
+                jmp _next1              ;
 
-SKIP075         sec                     ; If in Aft view -> DIVISOR := - z-coordinate / 2
+_1              sec                     ; If in Aft view -> DIVISOR := - z-coordinate / 2
                 lda #0                  ; (division by 2 to make B15 = 0?) (?)
                 sbc ZPOSLO,X            ;
                 sta L_DIVISOR           ;
                 lda #0                  ;
                 sbc ZPOSHI,X            ;
-                lsr A                   ;
+                lsr                     ;
                 sta L_DIVISOR+1         ;
                 ror L_DIVISOR           ;
 
-LOOP035         asl L_QUOTIENT          ; QUOTIENT := DIVIDEND / DIVISOR * 128
+_next1          asl L_QUOTIENT          ; QUOTIENT := DIVIDEND / DIVISOR * 128
                 sec                     ;
                 lda DIVIDEND            ;
                 sbc L_DIVISOR           ;
                 tay                     ;
                 lda DIVIDEND+1          ;
                 sbc L_DIVISOR+1         ;
-                bcc SKIP076             ;
+                bcc _2                  ;
 
                 sta DIVIDEND+1          ;
                 sty DIVIDEND            ;
                 inc L_QUOTIENT          ;
 
-SKIP076         asl DIVIDEND            ;
+_2              asl DIVIDEND            ;
                 rol DIVIDEND+1          ;
-                bcc SKIP077             ;
+                bcc _3                  ;
 
                 lda #255                ; Return 255 if division by zero or dividend overflow
                 rts                     ;
 
-SKIP077         dec L_LOOPCNT           ;
-                bpl LOOP035             ; Next division loop iteration
+_3              dec L_LOOPCNT           ;
+                bpl _next1              ; Next division loop iteration
 
                 ldy L_QUOTIENT          ; Prep with quotient
                 lda MAPTO80,Y           ; Pick and return pixel column (or row) number...
-SKIP078         rts                     ; ...relative to PLAYFIELD center
+_XIT            rts                     ; ...relative to PLAYFIELD center
+                .endproc

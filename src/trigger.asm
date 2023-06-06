@@ -1,3 +1,4 @@
+
 ;*******************************************************************************
 ;*                                                                             *
 ;*                                   TRIGGER                                   *
@@ -57,28 +58,33 @@
 ; (10) Play the noise sound pattern PHOTON TORPEDO LAUNCHED by continuing code
 ;      execution into subroutine NOISE ($AEA8).
 
-TRIGGER         lda OLDTRIG0            ; Prep last trigger state
+
+;======================================
+; Handle joystick trigger
+;======================================
+TRIGGER         .proc
+                lda OLDTRIG0            ; Prep last trigger state
 
                 ldy TRIG0               ; Copy current trigger state
                 sty OLDTRIG0            ;
-                bne SKIP124             ; Return if trigger currently not pressed
+                bne _XIT1               ; Return if trigger currently not pressed
 
                 sty IDLECNTHI           ; Reset idle counter
 
                 ldx WARPSTATE           ; Return if hyperwarp engaged
-                bne SKIP124             ;
+                bne _XIT1               ;
 
                 ldx BARRELNR            ; Prep barrel number (0 -> left, 1 -> right)
 
                 cmp #1                  ; If trigger is newly pressed -> handle tracking...
-                beq SKIP125             ; ...and launch our starship's photon torpedo...
-                bcs SKIP127             ; ...else launch our starship's photon torpedo only
-SKIP124         rts                     ; Return
+                beq _1                  ; ...and launch our starship's photon torpedo...
+                bcs _3                  ; ...else launch our starship's photon torpedo only
+_XIT1           rts
 
 ;*** Set up our starship's photon torpedo tracking *****************************
-SKIP125         lda PL3LIFE,X           ; Return if torpedo's lifetime >= 232 game loops
+_1              lda PL3LIFE,X           ; Return if torpedo's lifetime >= 232 game loops
                 cmp #232                ;
-                bcs SKIP124             ;
+                bcs _XIT1               ;
 
                 ldy TRACKDIGIT          ; Store index of tracked space object
                 sty PLTRACKED           ;
@@ -87,21 +93,22 @@ SKIP125         lda PL3LIFE,X           ; Return if torpedo's lifetime >= 232 ga
                 ldy ISINLOCKON          ; If target is in full lock-on...
                 sty ISTRACKING          ; ...activate photon torpedo tracking
 
-                beq SKIP126             ; Skip if target not in full lock-on
+                beq _2                  ; Skip if target not in full lock-on
+
                 lda #0                  ; Prep lock-on lifetime := 0 game loops
-SKIP126         sta LOCKONLIFE          ; Store lock-on lifetime (either 0 or 12 game loops)
+_2              sta LOCKONLIFE          ; Store lock-on lifetime (either 0 or 12 game loops)
 
 ;*** Launch our starship's photon torpedo **************************************
-SKIP127         sty OLDTRIG0            ; Update last trigger state
+_3              sty OLDTRIG0            ; Update last trigger state
                 bit GCSTATPHO           ; Return if Photon Torpedoes are destroyed
-                bvs SKIP124             ;
+                bvs _XIT1               ;
+                bmi _4                  ; If Photon Torpedoes damaged launch from same barrel
 
-                bmi SKIP128             ; If Photon Torpedoes damaged launch from same barrel
                 txa                     ; ...else switch barrel from which to launch torpedo
                 eor #$01                ;
                 sta BARRELNR            ;
 
-SKIP128         txa                     ; SUMMARY: Our starship's photon torpedo's...
+_4              txa                     ; SUMMARY: Our starship's photon torpedo's...
                 sta PL3XPOSSIGN,X       ; x-coordinate := +256 (+$0100) <KM> (right barrel)
                 lda BARRELXTAB,X        ; x-coordinate := -256 (-$FF00) <KM> (left barrel)
                 sta PL3XPOSHI,X         ; y-coordinate := -256 (-$FF00) <KM>
@@ -119,7 +126,7 @@ SKIP128         txa                     ; SUMMARY: Our starship's photon torpedo
                 sta PL3ZPOSLO,X         ;
 
                 lda SHIPVIEW            ; SUMMARY: Our starship's photon torpedo's...
-                lsr A                   ; x-velocity :=   +0 <KM/H>
+                lsr                     ; x-velocity :=   +0 <KM/H>
                 ror A                   ; y-velocity :=   +0 <KM/H>
                 ora #102                ; z-velocity := +102 <KM/H> (Other views)
                 sta PL3ZVEL,X           ; z-velocity := -102 <KM/H> (Aft view)
@@ -128,6 +135,10 @@ SKIP128         txa                     ; SUMMARY: Our starship's photon torpedo
                 sta PL3YVEL,X           ;
 
                 ldx #2                  ; ENERGY := ENERGY - 10 for launching photon torpedo
-                jsr DECENERGY           ;
+                jsr DecreaseEnergy      ;
 
                 ldx #$00                ; Play noise sound pattern PHOTON TORPEDO LAUNCHED
+
+                .endproc
+
+                ;[fall-through]

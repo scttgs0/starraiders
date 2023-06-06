@@ -1,3 +1,4 @@
+
 ;*******************************************************************************
 ;*                                                                             *
 ;*                                  UPDPANEL                                   *
@@ -45,34 +46,38 @@
 ;
 ;      If there is a carryover of the energy counter then decrement the ENERGY
 ;      readout of the Control Panel Display by one energy unit after code
-;      execution has continued into subroutine DECENERGY ($B86F). 
+;      execution has continued into subroutine DecreaseEnergy ($B86F).
 
-;*** Accelerate or decelerate our starship *************************************
-UPDPANEL        ldx VELOCITYLO          ; Skip if new velocity = current velocity
+
+;======================================
+; Accelerate or decelerate our starship
+;======================================
+UPDPANEL        .proc
+                ldx VELOCITYLO          ; Skip if new velocity = current velocity
                 cpx NEWVELOCITY         ;
-                beq SKIP241             ;
+                beq _2                  ;
 
-                bcc SKIP240             ; In/decrement current velocity toward new velocity
+                bcc _1                  ; In/decrement current velocity toward new velocity
                 dec VELOCITYLO          ;
-                bcs SKIP242             ;
-SKIP240         inc VELOCITYLO          ;
+                bcs _3                  ;
+_1              inc VELOCITYLO          ;
 
-SKIP241         lda WARPSTATE           ; Skip if hyperwarp engaged
-                bne SKIP242             ;
+_2              lda WARPSTATE           ; Skip if hyperwarp engaged
+                bne _3                  ;
 
                 bit GCSTATENG           ; Skip if Engines are OK
-                bpl SKIP242             ;
+                bpl _3                  ;
 
                 lda NEWVELOCITY         ; Store RND(0..current velocity) to current velocity
                 and RANDOM              ;
                 sta VELOCITYLO          ;
 
-SKIP242         ldy #VELOCD1-PANELTXT-1 ; Update digits of VELOCITY readout
+_3              ldy #VELOCD1-PANELTXT-1 ; Update digits of VELOCITY readout
                 jsr SHOWDIGITS          ;
 
 ;*** Display coordinates of tracked space object of Control Panel Display ******
                 bit GCSTATCOM           ; Skip if Attack Computer damaged or destroyed
-                bmi SKIP243             ;
+                bmi _4                  ;
 
                 lda #$31                ; Update THETA readout (x-coordinate)
                 ldy #THETAC1-PANELTXT   ;
@@ -89,20 +94,20 @@ SKIP242         ldy #VELOCD1-PANELTXT-1 ; Update digits of VELOCITY readout
                 lda RANGEC1+2           ; Hack to clear RANGE digit 3 when in hyperwarp:
                 sta RANGEC1+3           ; Copy RANGE digit 2 to digit 3
                 cmp #CCS_9+1            ; Skip if digit character > '9' (= 'infinity' char)
-                bcs SKIP243             ;
+                bcs _4                  ;
 
                 ldx TRACKDIGIT          ; Get z-coordinate (low byte) of tracked space object
                 lda ZPOSLO,X            ;
-                lsr A                   ; ...divide it by 16...
-                lsr A                   ;
-                lsr A                   ;
-                lsr A                   ;
+                lsr                     ; ...divide it by 16...
+                lsr                     ;
+                lsr                     ;
+                lsr                     ;
                 tax                     ;
                 lda MAPTOBCD99,X        ; ...map value of $00..$0F to BCD value 0..9
                 sta RANGEC1+3           ; ...and store it to RANGE digit 3
 
 ;*** Calculate overall energy consumption **************************************
-SKIP243         clc                     ;
+_4              clc                     ;
                 lda ENERGYCNT           ; Load energy counter
                 adc DRAINSHIELDS        ; Add energy drain rate of Shields
                 adc DRAINENGINES        ; Add energy drain rate of our starship's Engines
@@ -110,13 +115,18 @@ SKIP243         clc                     ;
                 adc #$01                ; Add 1 energy subunit of life support system
                 cmp ENERGYCNT           ;
                 sta ENERGYCNT           ;
-                bcs SKIP246             ; Return if no energy counter carryover
+                bcs DecreaseEnergy._XIT ; Return if no energy counter carryover
 
                 ldx #3                  ; Will decrement third energy digit
 
+                .endproc
+
+                ;[fall-through]
+
+
 ;*******************************************************************************
 ;*                                                                             *
-;*                                  DECENERGY                                  *
+;*                               DecreaseEnergy                                *
 ;*                                                                             *
 ;*                               Decrease energy                               *
 ;*                                                                             *
@@ -137,35 +147,41 @@ SKIP243         clc                     ;
 ;     3 -> Subtract   1 unit  from ENERGY readout
 
 ;*** Display ENERGY readout ****************************************************
-DECENERGY       bit ISDEMOMODE          ; Return if in demo mode
-                bvs SKIP246             ;
+
+
+;======================================
+; Decrease energy
+;======================================
+DecreaseEnergy  .proc
+                bit ISDEMOMODE          ; Return if in demo mode
+                bvs _XIT                ;
 
                 dec ENERGYD1,X          ; Decrement energy digit character
                 lda ENERGYD1,X          ;
                 cmp #CCS_COL2|CCS_0     ;
-                bcs SKIP246             ; Return if digit character >= '0'
+                bcs _XIT                ; Return if digit character >= '0'
                 lda #CCS_COL2|CCS_9     ;
                 sta ENERGYD1,X          ; Store digit character '9'
 
 ;*** Decrement score when crossing a 100-energy-unit boundary while subtracting 
                 cpx #2                  ; Skip if no crossing of 100-energy-unit boundary
-                bne SKIP245             ;
+                bne _2                  ;
 
                 lda SCORE               ; SCORE := SCORE - 1
-                bne SKIP244             ;
+                bne _1                  ;
                 dec SCORE+1             ;
-SKIP244         dec SCORE               ;
+_1              dec SCORE               ;
 
-SKIP245         dex                     ;
-                bpl DECENERGY           ; Next digit
+_2              dex                     ;
+                bpl DecreaseEnergy      ; Next digit
 
 ;*** Energy is zero, game over *************************************************
                 ldx #CCS_SPC            ; Clear 4-digit ENERGY readout
                 txa                     ;
                 ldy #3                  ;
-LOOP079         sta ENERGYD1,Y          ;
+_next1          sta ENERGYD1,Y          ;
                 dey                     ;
-                bpl LOOP079             ;
+                bpl _next1              ;
 
                 jsr SETVIEW             ; Set Front view
 
@@ -173,7 +189,9 @@ LOOP079         sta ENERGYD1,Y          ;
                 ldx #$04                ; Set mission bonus offset
                 jsr GAMEOVER            ; Game over
 
-SKIP246         rts                     ; Return
+_XIT            rts
+                .endproc
+
 
 ;*******************************************************************************
 ;*                                                                             *
@@ -217,7 +235,13 @@ SKIP246         rts                     ; Return
 
 L_SIGNCHAR      = $6A                   ; Saves sign character
 
-SHOWCOORD       clc                     ; Add index of tracked space object...
+
+;======================================
+; Display a position vector component
+; (coordinate) in Control Panel Display
+;======================================
+SHOWCOORD       .proc
+                clc                     ; Add index of tracked space object...
                 adc TRACKDIGIT          ; ...to position vector component offset
                 tax                     ; Save position vector component index
 
@@ -226,14 +250,14 @@ SHOWCOORD       clc                     ; Add index of tracked space object...
                 sta L_SIGNCHAR          ;
 
                 lda ZPOSSIGN,X          ; Prep sign of coordinate
-                lsr A                   ;
+                lsr                     ;
                 lda ZPOSHI,X            ; Prep coordinate (high byte)
-                bcs SKIP247             ; Skip if sign is positive
+                bcs _1                  ; Skip if sign is positive
 
                 eor #$FF                ; Invert coordinate (high byte)
                 dec L_SIGNCHAR          ; Change saved sign character to '-' (CCS_MINUS)
 
-SKIP247         tax                     ; Save coordinate (high byte)
+_1              tax                     ; Save coordinate (high byte)
                 lda L_SIGNCHAR          ; Store sign character in Control Panel Display
                 sta PANELTXT,Y          ;
 
@@ -245,6 +269,11 @@ SKIP247         tax                     ; Save coordinate (high byte)
                 cpx #$FF                ; If coordinate (high byte) = $FF decrement value
                 bne SHOWDIGITS          ; This avoids output of CCS_INFINITY in...
                 dex                     ; ...THETA and PHI readouts
+
+                .endproc
+
+                ;[fall-through]
+
 
 ;*******************************************************************************
 ;*                                                                             *
@@ -274,14 +303,20 @@ SKIP247         tax                     ; Save coordinate (high byte)
 ;     $23 -> First character (sign) of RANGE readout (z-coordinate of tracked
 ;            space object)
 
-SHOWDIGITS      lda MAPTOBCD99,X        ; Map binary value to BCD-value
+
+;======================================
+;
+;======================================
+SHOWDIGITS      .proc
+                lda MAPTOBCD99,X        ; Map binary value to BCD-value
                 tax                     ;
                 and #$0F                ;
                 sta PANELTXT+2,Y        ; Store 'ones' digit in Control Panel Display
                 txa                     ;
-                lsr A                   ;
-                lsr A                   ;
-                lsr A                   ;
-                lsr A                   ;
+                lsr                     ;
+                lsr                     ;
+                lsr                     ;
+                lsr                     ;
                 sta PANELTXT+1,Y        ; Store 'tens' digit in Control Panel Display
-                rts                     ; Return
+                rts
+                .endproc

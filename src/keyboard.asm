@@ -1,3 +1,4 @@
+
 ;*******************************************************************************
 ;*                                                                             *
 ;*                                  KEYBOARD                                   *
@@ -35,7 +36,7 @@
 ; of the Control Panel Display is updated and the PLAYFIELD is cleared in
 ; subroutine CLRPLAYFIELD ($AE0D). If the Attack Computer is on, the Front or
 ; Aft view cross hairs are drawn, depending on the current view of our starship,
-; via subroutine DRAWLINES ($A76F).
+; via subroutine DrawLines ($A76F).
 ;
 ; If the 'H' (Hyperwarp) key has been pressed then the hyperwarp is engaged. Our
 ; starship's velocity is set to the maximum value, the Engines drain rate is
@@ -77,17 +78,22 @@
 ; NOTE: This subroutine has two additional entry points:
 ;
 ; (1)  SETVIEW ($B045), which is used to enforce the Front view. It is entered
-;      from the game loop GAMELOOP ($A1F3) and subroutines INITSTART ($A15E) and
-;      DECENERGY ($B86F).
+;      from the game loop GAMELOOP ($A1F3) and subroutines START ($A15E) and
+;      DecreaseEnergy ($B86F).
 ;
 ; (2)  UPDSCREEN ($B07B), which draws the cross hairs and the Attack Computer
 ;      Display, and then sets the tracking letter of the Control Panel Display.
-;      It is entered from subroutine DOCKING ($ACE6).
+;      It is entered from subroutine Docking ($ACE6).
 
 L_KEYCODE       = $6A                   ; Saves pressed keyboard code
 
-KEYBOARD        lda KEYCODE             ; Return if no keyboard code collected
-                beq SKIP150             ;
+
+;======================================
+; Handle Keyboard Input
+;======================================
+KEYBOARD        .proc
+                lda KEYCODE             ; Return if no keyboard code collected
+                beq _XIT1               ;
 
                 ldx #20                 ; Prep keyboard code table loop index
                 sta L_KEYCODE           ; Save keyboard code
@@ -101,41 +107,50 @@ KEYBOARD        lda KEYCODE             ; Return if no keyboard code collected
 
 ;*** Search keyboard code in lookup table **************************************
 
-LOOP051         lda KEYTAB,X            ; Loop over all valid keyboard codes
+_next1          lda KEYTAB,X            ; Loop over all valid keyboard codes
                 cmp L_KEYCODE           ;
-                beq SKIP147             ; Branch if matching entry found
+                beq _1                  ; Branch if matching entry found
                 dex                     ;
-                bpl LOOP051             ; Next keyboard code
+                bpl _next1              ; Next keyboard code
 
                 ldy #$10                ; No match found...
                 jmp SETTITLE            ; ...set title phrase "WHATS WRONG?" and return
 
 ;*** Handle '0'..'9' keyboard keys (speed) *************************************
-SKIP147         cpx #10                 ; Skip section if keyboard code does not match
-                bcs SKIP151             ;
+_1              cpx #10                 ; Skip section if keyboard code does not match
+                bcs _4                  ;
 
                 lda WARPSTATE           ; Skip if hyperwarp disengaged...
-                beq SKIP148             ;
+                beq _2                  ;
                 jmp ABORTWARP           ; ...else abort hyperwarp
 
-SKIP148         bit GCSTATENG           ; Skip if Engines are OK or destroyed
-                bvc SKIP149             ;
+_2              bit GCSTATENG           ; Skip if Engines are OK or destroyed
+                bvc _3                  ;
                 cpx #6                  ; Allow max velocity equivalent to speed key '5'
-                bcc SKIP149             ;
+                bcc _3                  ;
                 ldx #5                  ;
 
-SKIP149         lda DRAINRATETAB,X      ; Set Engines energy drain rate
+_3              lda DRAINRATETAB,X      ; Set Engines energy drain rate
                 sta DRAINENGINES        ;
                 lda VELOCITYTAB,X       ; Set new velocity
                 sta NEWVELOCITY         ;
-SKIP150         rts                     ; Return
+_XIT1           rts
 
 ;*** Handle 'F', 'A', 'L', 'G' keyboard keys (our starship's views) ************
-SKIP151         cpx #14                 ; Skip section if keyboard code does not match
-                bcs SKIP152             ;
+_4              cpx #14                 ; Skip section if keyboard code does not match
+                bcs SETVIEW._ENTRY1     ;
 
-;*** Entry to force Front view after game init and failed missions *************
-SETVIEW         lda VIEWMODETAB-10,X    ; Store our starship's view type
+                .endproc
+
+                ;[fall-through]
+
+
+;======================================
+; Entry to force Front view after game
+; init and failed missions
+;======================================
+SETVIEW         .proc
+                lda VIEWMODETAB-10,X    ; Store our starship's view type
                 sta SHIPVIEW            ;
 
                 ldy DLSTFRAGOFFTAB-10,X ; Get DL fragment offset (Front, Aft, LRS, GC)
@@ -144,54 +159,65 @@ SETVIEW         lda VIEWMODETAB-10,X    ; Store our starship's view type
                 jsr MODDLST             ;
 
                 ldx #NUMSPCOBJ_NORM-1   ; Create new star field of 12 stars
-LOOP052         jsr INITPOSVEC          ;
+_next1          jsr INITPOSVEC          ;
+
                 dex                     ;
                 cpx #NUMSPCOBJ_PL       ;
-                bcs LOOP052             ;
+                bcs _next1              ;
 
                 bcc UPDSCREEN           ; Return via updating screen (below)
 
 ;*** Handle 'T', 'S', 'C' keyboard keys (Tracking, Shields, Attack Computer) ***
-SKIP152         cpx #17                 ; Skip section if keyboard code does not match
-                bcs SKIP156             ;
+_ENTRY1         cpx #17                 ; Skip section if keyboard code does not match
+                bcs UPDSCREEN._ENTRY1   ;
 
                 ldy MSGOFFTAB-14,X      ; Prep title phrase offset "... OFF"
                 lda ISTRACKCOMPON-14,X  ; Toggle status bits (also energy consumption values)
                 eor MSGBITTAB-14,X      ;
                 sta ISTRACKCOMPON-14,X  ;
-                beq SKIP153             ;
+                beq _1                  ;
+
                 ldy MSGONTAB-14,X       ; Prep title phrase offset "... ON"
-SKIP153         jsr SETTITLE            ; Set title phrase to "... ON" or "... OFF" version
+_1              jsr SETTITLE            ; Set title phrase to "... ON" or "... OFF" version
 
                 ldx #$0C                ; Play beeper sound pattern ACKNOWLEDGE
                 jsr BEEP                ;
 
-;*** Update PLAYFIELD (Cross hairs, Attack Computer, set tracking letter) ******
-UPDSCREEN       ldx #CCS_T              ; Get custom char 'T' (entry point TRANSFER COMPLETE)
+                .endproc
+
+                ;[fall-through]
+
+
+;--------------------------------------
+; Update PLAYFIELD (Cross hairs, Attack
+; Computer, set tracking letter)
+;--------------------------------------
+UPDSCREEN       .proc
+                ldx #CCS_T              ; Get custom char 'T' (entry point TRANSFER COMPLETE)
                 ldy ISTRACKCOMPON       ;
-                beq SKIP154             ; Skip if Tracking Computer is on
+                beq _1                  ; Skip if Tracking Computer is on
 
                 inx                     ; Get custom char 'C'
 
-SKIP154         stx TRACKC1             ; Store tracking character in Control Panel Display
+_1              stx TRACKC1             ; Store tracking character in Control Panel Display
                 jsr CLRPLAYFIELD        ; Clear PLAYFIELD
                 lda DRAINATTCOMP        ; Return if Attack Computer off
-                beq SKIP150             ;
+                beq KEYBOARD._XIT1      ;
 
                 ldx SHIPVIEW            ; If Aft view   -> Draw Aft cross hairs and return
-                beq SKIP155             ; If Front view -> Draw Front cross hairs and ...
+                beq _XIT1               ; If Front view -> Draw Front cross hairs and ...
                 cpx #$01                ;                  ...Attack Computer and return
-                bne SKIP150             ;
+                bne KEYBOARD._XIT1      ;
                 ldx #$2A                ;
-SKIP155         jmp DRAWLINES           ;
+_XIT1           jmp DrawLines           ;
 
 ;*** Handle 'H' keyboard key (Hyperwarp) ***************************************
-SKIP156         cpx #17                 ; Skip if keyboard code does not match
-                bne SKIP158             ;
+_ENTRY1         cpx #17                 ; Skip if keyboard code does not match
+                bne _3                  ;
 
 ;*** Engage Hyperwarp **********************************************************
                 lda WARPSTATE           ; Return if hyperwarp engaged
-                bne SKIP159             ;
+                bne _XIT2               ;
 
                 lda #$7F                ; Engage hyperwarp
                 sta WARPSTATE           ;
@@ -221,7 +247,7 @@ SKIP156         cpx #17                 ; Skip if keyboard code does not match
                 sta WARPTEMPROW         ;
 
                 lda MISSIONLEVEL        ; Skip if NOVICE mission
-                beq SKIP157             ;
+                beq _2                  ;
 
                 lda WARPENERGY          ; Bits B0..1 of hyperwarp energy index a table...
                 rol A                   ; ...containing the maximum value of how much the...
@@ -231,29 +257,33 @@ SKIP156         cpx #17                 ; Skip if keyboard code does not match
                 tay                     ;
                 lda VEERMASKTAB,Y       ;
 
-SKIP157         sta VEERMASK            ; Store veer-off velocity limitation mask
+_2              sta VEERMASK            ; Store veer-off velocity limitation mask
 
                 ldy #$11                ; Set title phrase "HYPERWARP ENGAGED" and return
                 jmp SETTITLE            ;
 
 ;*** Handle 'M' keyboard key (Manual Target Selector) key **********************
-SKIP158         cpx #19                 ; Skip if keyboard code does not match
-                bcs SKIP160             ;
+_3              cpx #19                 ; Skip if keyboard code does not match
+                bcs _4                  ;
 
                 lda TRACKDIGIT          ; Toggle digit of tracked space object of...
                 eor #$01                ; ... Control Panel Display
                 and #$01                ;
                 sta TRACKDIGIT          ;
-SKIP159         rts                     ; Return
+_XIT2           rts
 
 ;*** Handle 'P' keyboard key (Pause) *******************************************
-SKIP160         bne SKIP161             ; Skip if keyboard code does not match
+_4              bne _5                  ; Skip if keyboard code does not match
 
                 lda PORTA               ; Push joystick to resume action
                 cmp #$FF                ;
-                beq SKIP160             ; (!)
-                rts                     ; Return
+                beq _4                  ; (!)
+                rts
 
 ;*** Handle 'INV' keyboard key (Abort Mission) *********************************
-SKIP161         ldy #$76                ; Preload title phrase "MISSION ABORTED..."
+_5              ldy #$76                ; Preload title phrase "MISSION ABORTED..."
                 ldx #$04                ; Set mission bonus offset
+
+                .endproc
+
+                ;[fall-through]

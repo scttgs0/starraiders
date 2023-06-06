@@ -1,3 +1,4 @@
+
 ;*******************************************************************************
 ;*                                                                             *
 ;*                                    SOUND                                    *
@@ -101,7 +102,7 @@
 ;     of the noise sound pattern table:
 ;
 ;     NOISEZYLONTIM ($E2)   = Delay timer to trigger the ZYLON EXPLOSION noise
-;                             sound pattern. It is set in subroutine COLLISION
+;                             sound pattern. It is set in subroutine Collision
 ;                             ($AF3D) when the impact of one of our starship's
 ;                             photon torpedoes with a target is imminent. The
 ;                             timer is decremented every TICK. When it reaches a
@@ -125,7 +126,7 @@
 ; (2)  Play ZYLON EXPLOSION noise sound pattern
 ;
 ;      If the explosion of a target space object is imminent (subroutine
-;      COLLISION ($AF3D) has set NOISEZYLONTIM ($E2) to the number of game loop
+;      Collision ($AF3D) has set NOISEZYLONTIM ($E2) to the number of game loop
 ;      iterations that will pass until our starship's photon torpedo will hit
 ;      the target), the timer NOISEZYLONTIM ($E2) is decremented every TICK. If
 ;      it reaches a value of 0, then the noise sound pattern ZYLON EXPLOSION is
@@ -206,23 +207,27 @@
 ;      Toward the end of a noise sound pattern's lifetime all audio channels
 ;      gradually mute their volume every other TICK until completely silent. 
 
-;*** Play beeper sound pattern *************************************************
-SOUND           lda BEEPPRIORITY        ; Skip if beeper sound pattern not in use
-                beq SKIP185             ;
+
+;======================================
+; Play beeper sound pattern
+;======================================
+SOUND           .proc
+                lda BEEPPRIORITY        ; Skip if beeper sound pattern not in use
+                beq _2                  ;
 
                 dec BEEPLIFE            ; Decrement beeper lifetime
-                bpl SKIP185             ; Skip if beeper lifetime still counting down
+                bpl _2                  ; Skip if beeper lifetime still counting down
 
                 lda BEEPTOGGLE          ; Load tone/pause toggle
-                beq LOOP058             ; Skip if a tone is playing or is to be played
+                beq _next1              ; Skip if a tone is playing or is to be played
 
                 lda BEEPPAUSELIFE       ; Load pause lifetime
-                bmi LOOP058             ; Skip if duration = $FF (no pause)
+                bmi _next1              ; Skip if duration = $FF (no pause)
                 sta BEEPLIFE            ; Store pause lifetime as beeper lifetime
                 ldy #0                  ; Prep AUDC4 (zero volume)
-                beq SKIP184             ; Skip unconditionally
+                beq _1                  ; Skip unconditionally
 
-LOOP058         lda BEEPTONELIFE        ; Load tone lifetime
+_next1          lda BEEPTONELIFE        ; Load tone lifetime
                 sta BEEPLIFE            ; Store tone lifetime as beeper lifetime
                 ldx BEEPFRQIND          ; Load frequency index
                 inc BEEPFRQIND          ; Increment frequency index
@@ -230,39 +235,39 @@ LOOP058         lda BEEPTONELIFE        ; Load tone lifetime
                 sta AUDF4               ;
                 ldy #$A8                ; Prep AUDC4 (tone distortion + medium volume)
                 cmp #$FF                ; Skip if frequency not $FF (there are more tones)
-                bne SKIP184             ;
+                bne _1                  ;
 
                 lda BEEPFRQSTART        ; Rewind pattern frequency pointer
                 sta BEEPFRQIND          ;
                 dec BEEPREPEAT          ; Decrement sequence counter
-                bpl LOOP058             ; Keep playing until sequence counter < 0
+                bpl _next1              ; Keep playing until sequence counter < 0
 
                 ldy #0                  ; Prep AUDC4 with zero volume
                 sty BEEPPRIORITY        ; Stop playing beeper sound pattern
 
-SKIP184         sty AUDC4               ; Store in AUDC4
+_1              sty AUDC4               ; Store in AUDC4
                 sty BEEPTOGGLE          ; Store in BEEPTOGGLE
 
 ;*** Play ZYLON EXPLOSION noise sound pattern **********************************
-SKIP185         lda NOISEZYLONTIM       ; Skip if ZYLON EXPLOSION timer not in use
-                beq SKIP186             ;
+_2              lda NOISEZYLONTIM       ; Skip if ZYLON EXPLOSION timer not in use
+                beq _3                  ;
 
                 dec NOISEZYLONTIM       ; Decrement ZYLON EXPLOSION timer
-                bne SKIP186             ; Skip if ZYLON EXPLOSION timer still counting down
+                bne _3                  ; Skip if ZYLON EXPLOSION timer still counting down
 
                 ldx #$14                ; Play noise sound pattern ZYLON EXPLOSION
                 jsr NOISE               ;
 
 ;*** Play our starship's Engines sound *****************************************
-SKIP186         ldx VELOCITYLO          ; Skip if Engines softer than noise sound pattern
+_3              ldx VELOCITYLO          ; Skip if Engines softer than noise sound pattern
                 txa                     ;
-                lsr A                   ;
-                lsr A                   ;
-                lsr A                   ;
-                lsr A                   ;
-                lsr A                   ;
+                lsr                     ;
+                lsr                     ;
+                lsr                     ;
+                lsr                     ;
+                lsr                     ;
                 cmp NOISELIFE           ;
-                bcc SKIP187             ;
+                bcc _4                  ;
 
                 lda #0                  ; Terminate noise sound pattern
                 sta NOISELIFE           ;
@@ -273,19 +278,20 @@ SKIP186         ldx VELOCITYLO          ; Skip if Engines softer than noise soun
                 sta AUDF3               ; AUDF3 := %abcdefgh
 
                 tax                     ;                ________
-                asl A                   ; AUDF2/1 := %000abcdefgh00000
-                asl A                   ;
-                asl A                   ;
-                asl A                   ;
-                asl A                   ;
+                asl                     ; AUDF2/1 := %000abcdefgh00000
+                asl                     ;
+                asl                     ;
+                asl                     ;
+                asl                     ;
                 sta AUDF1               ;
+
                 txa                     ;
-                lsr A                   ;
-                lsr A                   ;
-                lsr A                   ;
+                lsr                     ;
+                lsr                     ;
+                lsr                     ;
                 sta AUDF2               ;
 
-                lsr A                   ; AUDC2 := %1000abcd
+                lsr                     ; AUDC2 := %1000abcd
                 eor #$8F                ; (noise distortion + B7..B4 bits for volume)
                 sta AUDC2               ;
 
@@ -295,24 +301,24 @@ SKIP186         ldx VELOCITYLO          ; Skip if Engines softer than noise soun
                 lda #$70                ; Clock audio channel 1 and 3 @ 1.79 MHz and...
                 sta AUDCTL              ; ...combine audio channel 1/2 to 16-bit channel
 
-                rts                     ; Return
+                rts
 
 ;*** Play ZYLON EXPLOSION or SHIELD EXPLOSION noise ****************************
-SKIP187         lda NOISEEXPLTIM        ; Skip if explosion noise timer not in use
-                beq SKIP188             ;
+_4              lda NOISEEXPLTIM        ; Skip if explosion noise timer not in use
+                beq _5                  ;
 
                 dec NOISEEXPLTIM        ; Decrement explosion noise timer (4 or 8 TICKs long)
-                bne SKIP188             ; Skip if explosion noise timer still counting down
+                bne _5                  ; Skip if explosion noise timer still counting down
 
                 lda #$8F                ; Shadow register AUDC2 := (noise dist. + max volume)
                 sta NOISEAUDC2          ;
 
 ;*** Play PHOTON TORPEDO LAUNCHED noise sound **********************************
-SKIP188         ldx NOISETORPTIM        ; Skip if photon torpedo noise timer not in use
-                beq SKIP190             ;
+_5              ldx NOISETORPTIM        ; Skip if photon torpedo noise timer not in use
+                beq _7                  ;
 
                 dec NOISETORPTIM        ; Decrement photon torpedo noise timer (8 TICKs long)
-                bne SKIP189             ; Skip if torpedo noise timer still counting down
+                bne _6                  ; Skip if torpedo noise timer still counting down
 
                 lda #$AF                ; Shadow register AUDC2 := (tone dist. + max volume)
                 sta NOISEAUDC2          ;
@@ -320,15 +326,15 @@ SKIP188         ldx NOISETORPTIM        ; Skip if photon torpedo noise timer not
                 sta NOISEAUDF1          ; ...registers
                 sta NOISEAUDF2          ;
 
-SKIP189         lda NOISETORPVOLTAB-1,X ; Pick torpedo noise + volume shape (X in 1..8)...
+_6              lda NOISETORPVOLTAB-1,X ; Pick torpedo noise + volume shape (X in 1..8)...
                 sta NOISEAUDC3          ; ...and store it in AUDC3's shadow register
                 lda NOISETORPFRQTAB-1,X ; Pick photon torpedo noise frequency (X in 1..8)...
                 sta AUDF3               ; ...and store it in AUDF3
                 sta STIMER              ; Reset POKEY audio timers
 
 ;*** Play STARSHIP EXPLOSION noise when our starship is hit ********************
-SKIP190         lda NOISEHITLIFE        ; Skip if STARSHIP EXPLOSION noise not in use
-                beq SKIP191             ;
+_7              lda NOISEHITLIFE        ; Skip if STARSHIP EXPLOSION noise not in use
+                beq _8                  ;
 
                 dec NOISEHITLIFE        ; Decrement STARSHIP EXPLOSION noise lifetime
                 lda RANDOM              ; Set random frequency to AUDF3
@@ -338,7 +344,7 @@ SKIP190         lda NOISEHITLIFE        ; Skip if STARSHIP EXPLOSION noise not i
                 sta NOISEAUDC3          ;
 
 ;*** Increase 16-bit frequency of audio channels 1/2 (shadow registers also) ***
-SKIP191         clc                     ; Increase 16-bit frequency value of AUDF1/2...
+_8              clc                     ; Increase 16-bit frequency value of AUDF1/2...
                 lda NOISEAUDF1          ; ...and its shadow register by...
                 adc NOISEFRQINC         ; ...noise sound pattern frequency increment
                 sta NOISEAUDF1          ; AUDF1/2 := NOISEAUDF1/2 := ...
@@ -353,33 +359,36 @@ SKIP191         clc                     ; Increase 16-bit frequency value of AUD
                 ldy NOISEAUDC3          ; Prep AUDC3's shadow register value
 
                 lda COUNT8              ; Decrement volumes every other TICK
-                lsr A                   ;
-                bcc SKIP193             ;
+                lsr                     ;
+                bcc _10                 ;
 
                 lda NOISELIFE           ; Skip if noise sound pattern not in use
-                beq SKIP193             ;
+                beq _10                 ;
 
                 dec NOISELIFE           ; Decrement noise sound pattern lifetime
 
                 cmp #17                 ; Mute noise sound pattern only in...
-                bcs SKIP193             ; ...the last 16 TICKs of its lifetime
+                bcs _10                 ; ...the last 16 TICKs of its lifetime
 
                 txa                     ; Decrement volume of AUDC2's shadow register
                 and #$0F                ;
-                beq SKIP192             ;
+                beq _9                  ;
+
                 dex                     ;
                 stx NOISEAUDC2          ;
 
-SKIP192         tya                     ; Decrement volume of AUDC3's shadow register
+_9              tya                     ; Decrement volume of AUDC3's shadow register
                 and #$0F                ;
-                beq SKIP193             ;
+                beq _10                 ;
                 dey                     ;
                 sty NOISEAUDC3          ;
 
-SKIP193         stx AUDC2               ; Store shadow register values to audio registers
+_10             stx AUDC2               ; Store shadow register values to audio registers
                 sty AUDC3               ;
 
-                rts                     ; Return
+                rts
+                .endproc
+
 
 ;*******************************************************************************
 ;*                                                                             *
@@ -409,15 +418,21 @@ SKIP193         stx AUDC2               ; Store shadow register values to audio 
 ;     $12 -> DAMAGE REPORT
 ;     $18 -> MESSAGE FROM STARBASE
 
-BEEP            lda BEEPPATTAB,X        ; Return if beeper sound pattern of...
+
+;======================================
+;
+;======================================
+BEEP            .proc
+                lda BEEPPATTAB,X        ; Return if beeper sound pattern of...
                 cmp BEEPPRIORITY        ; ...higher priority is playing
-                bcc SKIP194             ;
+                bcc _XIT                ;
 
                 ldy #5                  ; Copy 6-byte beeper sound pattern (in reverse order)
-LOOP059         lda BEEPPATTAB,X        ;
+_next1          lda BEEPPATTAB,X        ;
                 sta BEEPFRQIND,Y        ;
                 inx                     ;
                 dey                     ;
-                bpl LOOP059             ;
+                bpl _next1              ;
 
-SKIP194         rts                     ; Return
+_XIT            rts
+                .endproc

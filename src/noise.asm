@@ -1,3 +1,4 @@
+
 ;*******************************************************************************
 ;*                                                                             *
 ;*                                    NOISE                                    *
@@ -33,23 +34,29 @@
 ;     $0A -> SHIELD EXPLOSION (either our starship or a starbase explodes)
 ;     $14 -> ZYLON EXPLOSION
 
-NOISE           txa                     ; Skip if SHIELD EXPLOSION or ZYLON EXPLOSION playing
-                bne SKIP129             ;
+
+;======================================
+; Copy noise sound pattern
+;======================================
+NOISE           .proc
+                txa                     ; Skip if SHIELD EXPLOSION or ZYLON EXPLOSION playing
+                bne _1                  ;
 
                 lda NOISELIFE           ; Return if PHOTON TORPEDO LAUNCHED noise sound pat.
                 cmp #24                 ; ...playing for yet more than 24 TICKs
-                bcs SKIP130             ;
+                bcs _XIT                ;
 
-SKIP129         ldy #7                  ; Copy noise sound pattern (in reverse order)
-LOOP046         lda NOISEPATTAB,X       ;
+_1              ldy #7                  ; Copy noise sound pattern (in reverse order)
+_next1          lda NOISEPATTAB,X       ;
                 sta NOISETORPTIM,Y      ;
                 inx                     ;
                 dey                     ;
-                bpl LOOP046             ;
+                bpl _next1              ;
 
                 lda NOISEPATTAB,X       ; Copy AUDCTL from noise sound pattern table
                 sta AUDCTL              ;
                 lda NOISEPATTAB+1,X     ; Copy AUDF3 from noise sound pattern table
                 sta AUDF3               ;
 
-SKIP130         rts                     ; Return
+_XIT            rts
+                .endproc

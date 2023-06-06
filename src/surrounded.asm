@@ -1,3 +1,4 @@
+
 ;*******************************************************************************
 ;*                                                                             *
 ;*                                ISSURROUNDED                                 *
@@ -26,11 +27,21 @@
 ;       0 -> Sector is not surrounded
 ;     > 0 -> Sector is surrounded
 
-ISSURROUNDED    lda GCMEMMAP-1,X        ; Check WEST sector
-                beq SKIP239             ;
+
+;======================================
+; Check if a sector is surrounded by
+; Zylon units
+;======================================
+ISSURROUNDED    .proc
+                lda GCMEMMAP-1,X        ; Check WEST sector
+                beq _XIT                ;
+
                 lda GCMEMMAP+1,X        ; Check EAST sector
-                beq SKIP239             ;
+                beq _XIT                ;
+
                 lda GCMEMMAP-16,X       ; Check NORTH sector
-                beq SKIP239             ;
+                beq _XIT                ;
+
                 lda GCMEMMAP+16,X       ; Check SOUTH sector
-SKIP239         rts                     ; Return
+_XIT            rts
+                .endproc
