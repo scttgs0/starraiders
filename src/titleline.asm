@@ -1,3 +1,4 @@
+
 ;*******************************************************************************
 ;*                                                                             *
 ;*                                  UPDTITLE                                   *
@@ -18,16 +19,26 @@
 ; displayed title phrase segment. If its lifetime has reached a value of 0 then
 ; branch to subroutine SETTITLE ($B223) to display the next segment.
 
-UPDTITLE        lda TITLEPHR            ; Skip if no title phrase set
-                beq SKIP175             ;
+
+;======================================
+; Update title line
+;======================================
+UPDTITLE        .proc
+                lda TITLEPHR            ; Skip if no title phrase set
+                beq _1                  ;
 
                 dec TITLELIFE           ; Decrement title phrase segment lifetime
-                beq SKIP176             ; If lifetime expired show next title segment
+                beq SETTITLE._ENTRY1    ; If lifetime expired show next title segment
 
-SKIP174         rts                     ; Return
+_XIT            rts
 
-SKIP175         ldy NEWTITLEPHR         ; Prep enqueued new title phrase
-                beq SKIP174             ; Return if not set
+_1              ldy NEWTITLEPHR         ; Prep enqueued new title phrase
+                beq _XIT                ; Return if not set
+
+                .endproc
+
+                ;[fall-through]
+
 
 ;*******************************************************************************
 ;*                                                                             *
@@ -111,7 +122,12 @@ L_TOKEN         = $6C                   ; Saves title phrase token from PHRASETA
                                         ;                  "RED ALERT"
                                         ; B5..0       -> Word number of WORDTAB ($BC2A)
 
-SETTITLE        sty TITLEPHR            ; Save title phrase offset
+
+;======================================
+;
+;======================================
+SETTITLE        .proc
+                sty TITLEPHR            ; Save title phrase offset
 
                 ldy #$23                ; Show title line
                 ldx #$0F                ;
@@ -119,29 +135,29 @@ SETTITLE        sty TITLEPHR            ; Save title phrase offset
                 jsr MODDLST             ;
 
 ;*** Init cursor column position and clear title line **************************
-SKIP176         ldx #19                 ; There are 19(+1) characters to clear
+_ENTRY1         ldx #19                 ; There are 19(+1) characters to clear
                 lda #0                  ;
                 sta L_COLUMNPOS         ; Init cursor column position
 
-LOOP055         sta TITLETXT,X          ; Clear character in title line
+_next1          sta TITLETXT,X          ; Clear character in title line
                 dex                     ;
-                bpl LOOP055             ;
+                bpl _next1              ;
 
 ;*** If title phrase offset = $FF then hide title line *************************
-SKIP177         ldx TITLEPHR            ; Load title phrase offset
+_next2          ldx TITLEPHR            ; Load title phrase offset
                 inc TITLEPHR            ; Prepare title phrase offset for next word
-                bne SKIP178             ; ...skip if it turned 0
+                bne _1                  ; ...skip if it turned 0
 
                 ldx #$0F                ; Remove title line and return
                 ldy #$80                ;
                 lda #$07                ;
                 jmp MODDLST             ;
 
-SKIP178         lda PHRASETAB,X         ; Get phrase token
+_1              lda PHRASETAB,X         ; Get phrase token
 
 ;*** Display scored class? *****************************************************
                 cmp #$FC                ; Skip if not "scored class" token
-                bne SKIP179             ;
+                bne _2                  ;
 
                 ldy SCOREDCLASSIND      ; Get scored class index, is in 0..15
                 lda CLASSTAB,Y          ; Load scored class number digit
@@ -149,17 +165,17 @@ SKIP178         lda PHRASETAB,X         ; Get phrase token
                 sta TITLETXT,X          ; Store class in title line
                 lda #60                 ; Title segment lifetime := 60 game loops
                 sta TITLELIFE           ;
-                rts                     ; Return
+                rts
 
 ;*** Display scored rank? ******************************************************
-SKIP179         cmp #$FD                ; Skip if not "scored rank" token
-                bne SKIP180             ;
+_2              cmp #$FD                ; Skip if not "scored rank" token
+                bne _3                  ;
 
                 ldy SCOREDRANKIND       ; Get scored rank index, is in 0..18
                 lda RANKTAB,Y           ; Load rank word number
 
 ;*** Search word of token in word table ****************************************
-SKIP180         sta L_TOKEN             ; Save phrase token
+_3              sta L_TOKEN             ; Save phrase token
                 and #$3F                ; Strip bits B6..7 from phrase token
                 sta L_WORD              ; Store word number (bits B5..0)
 
@@ -168,35 +184,38 @@ SKIP180         sta L_TOKEN             ; Save phrase token
                 lda #>(WORDTAB-1)       ;
                 sta MEMPTR+1            ;
 
-LOOP056         inc MEMPTR              ; Increment MEMPTR
-                bne SKIP181             ;
+_next3          inc MEMPTR              ; Increment MEMPTR
+                bne _4                  ;
                 inc MEMPTR+1            ;
 
-SKIP181         ldy #0                  ;
+_4              ldy #0                  ;
                 lda (MEMPTR),Y          ; Load character of word
-                bpl LOOP056             ; Loop until end-of-word marker (bit B7) found
+                bpl _next3              ; Loop until end-of-word marker (bit B7) found
                 dec L_WORD              ;
-                bne LOOP056             ; Loop until word found
+                bne _next3              ; Loop until word found
 
 ;*** Copy word to title line, add space ****************************************
-LOOP057         and #$3F                ; Strip color bits B6..7 from character
+_next4          and #$3F                ; Strip color bits B6..7 from character
                 eor #CCS_COL2|$20       ; Merge COLOR2 bits and convert to ATASCII
                 ldx L_COLUMNPOS         ; Copy character to title line
                 inc L_COLUMNPOS         ; Increment cursor column position
                 sta TITLETXT,X          ;
                 iny                     ;
                 lda (MEMPTR),Y          ; Load next character of word
-                bpl LOOP057             ; Next character of word if no end-of-word marker
+                bpl _next4              ; Next character of word if no end-of-word marker
                 inc L_COLUMNPOS         ; Word was copied. Add space after word.
 
 ;*** Decide to copy another word, etc. *****************************************
                 lda #60                 ; SUMMARY:
                 bit L_TOKEN             ; If bits B7..6 of phrase token...
-                bpl SKIP182             ; %00 -> Copy next word to title line
-                bvc SKIP183             ; %01 -> End-of-phrase, short delay, hide title line
+                bpl _5                  ; %00 -> Copy next word to title line
+                bvc _6                  ; %01 -> End-of-phrase, short delay, hide title line
+
                 lda #254                ;        Title segment lifetime := 60 game loops
-SKIP182         bvc SKIP177             ; %10 -> End-of-segment.
+_5              bvc _next2              ; %10 -> End-of-segment.
+
                 ldy #$FF                ;        Title segment lifetime := 60 game loops
                 sty TITLEPHR            ; %11 -> End-of-phrase, long delay, hide title line
-SKIP183         sta TITLELIFE           ;        Title segment lifetime := 254 game loops
-                rts                     ; Return
+_6              sta TITLELIFE           ;        Title segment lifetime := 254 game loops
+                rts
+                .endproc

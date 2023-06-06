@@ -1,3 +1,4 @@
+
 ;*******************************************************************************
 ;*                                                                             *
 ;*                                  GAMELOOP                                   *
@@ -44,7 +45,7 @@
 ;      starship's velocity.
 ;
 ;      BUG (at $A3C1): This operation is not applied to Photon torpedoes (?).
-;      Suggested fix: Remove lda PL0SHAPTYPE,X and beq SKIP011. 
+;      Suggested fix: Remove lda PL0SHAPTYPE,X and beq _8.
 ;
 ; (10) Add the proper velocity vector of all space objects to their position
 ;      vector (except for stars, which do not have any proper motion).
@@ -70,7 +71,7 @@
 ;      row number of all PLAYFIELD space objects (stars, explosion fragments) on
 ;      the plane established by the z and x axis of the 3D coordinate system
 ;      using subroutines SCREENCOLUMN ($B6FB) and SCREENROW ($B71E). Our
-;      starship's shape is drawn using subroutine DRAWLINES ($A76F). If the
+;      starship's shape is drawn using subroutine DrawLines ($A76F). If the
 ;      Long-Range Scan is OK then PLAYFIELD space object pixel numbers are
 ;      computed and drawn. This is skipped if the Long-Range Scan is destroyed. 
 ;
@@ -96,7 +97,7 @@
 ;      ($C8) and JOYSTICKY ($C9).
 ;
 ; (21) Check if our starship's photon torpedoes have hit a target in subroutine
-;      COLLISION ($AF3D). This subroutine triggers a game over if all Zylon
+;      Collision ($AF3D). This subroutine triggers a game over if all Zylon
 ;      ships have been destroyed.
 ;
 ; (22) Handle the joystick trigger in subroutine TRIGGER ($AE29).
@@ -116,7 +117,7 @@
 ;          tracked PLAYER space object by emulating pressing the 'F' (Front
 ;          view) or 'A' (Aft view) key (only if in Front or Aft view).
 ;
-; (24) Handle docking at a starbase in subroutine DOCKING ($ACE6).
+; (24) Handle docking at a starbase in subroutine Docking ($ACE6).
 ;
 ; (25) Handle maneuvering both of our starship's photon torpedoes, the single
 ;      Zylon photon torpedo, and the attacking Zylon ships in subroutine
@@ -130,7 +131,7 @@
 ; (27) If our starship was hit then execute the following steps:
 ;
 ;      o   Damage or destroy one of our starship's subsystems in subroutine
-;          DAMAGE ($AEE1).
+;          Damage ($AEE1).
 ;
 ;      o   Trigger an explosion in subroutine INITEXPL ($AC6B), 
 ;
@@ -139,7 +140,7 @@
 ;      o   End the lifetime of the Zylon photon torpedo.
 ;
 ;      o   Subtract 100 energy units for being hit by the Zylon photon torpedo
-;          in subroutine DECENERGY ($B86F). 
+;          in subroutine DecreaseEnergy ($B86F).
 ;
 ;      o   Trigger the noise sound pattern SHIELD EXPLOSION in subroutine NOISE
 ;          ($AEA8). 
@@ -164,7 +165,7 @@
 ; (28) Handle the function keys START and SELECT. If SELECT has been pressed
 ;      cycle through the next of the 4 mission levels. If either START or SELECT
 ;      have been pressed, reset the idle counter, then jump to the corresponding
-;      game initialization subroutines INITSTART ($A15E) or INITSELECT ($A15A),
+;      game initialization subroutines START ($A15E) or SELECT ($A15A),
 ;      respectively. 
 ;
 ; (29) Update the Control Panel Display in subroutine UPDPANEL ($B804).
@@ -194,7 +195,8 @@ L_FOURCOLORPIX  = $6A                   ; 1-byte bit pattern for 4 pixels of sam
 L_COLORMASK     = $6B                   ; Color/brightness to modify PLAYER color
 
 ;*** (1) Synchronize game loop with execution of VBI ***************************
-GAMELOOP        lda ISVBISYNC           ; Wait for execution of VBI
+GAMELOOP        ;.proc                  ; [entered via initcold fall-through]
+                lda ISVBISYNC           ; Wait for execution of VBI
                 beq GAMELOOP            ;
 
                 lda #0                  ; VBI is executed, clear VBI sync flag
@@ -202,10 +204,10 @@ GAMELOOP        lda ISVBISYNC           ; Wait for execution of VBI
 
 ;*** (2) Erase PLAYFIELD space objects (stars, explosion fragments) ************
                 lda OLDMAXSPCOBJIND     ; Skip if no space objects in use
-                beq SKIP002             ;
+                beq _1                  ;
 
                 ldx #NUMSPCOBJ_PL-1     ; Loop over all PLAYFIELD space objs (X index > 4)
-LOOP002         inx                     ;
+_next1          inx                     ;
                 ldy PIXELROW,X          ; Load pixel row number of PLAYFIELD space object
 
                 lda PFMEMROWLO,Y        ; Point MEMPTR to start of pixel's row...
@@ -218,19 +220,19 @@ LOOP002         inx                     ;
                 sta (MEMPTR),Y          ; Restore byte of PLAYFIELD memory
 
                 cpx OLDMAXSPCOBJIND     ;
-                bcc LOOP002             ; Next PLAYFIELD space object
+                bcc _next1              ; Next PLAYFIELD space object
 
                 lda #0                  ; Clear number of space objects
                 sta OLDMAXSPCOBJIND     ;
 
 ;*** (3) Draw PLAYFIELD space objects (stars, explosion fragments) *************
-SKIP002         lda WARPSTATE           ; Skip during hyperspace
+_1              lda WARPSTATE           ; Skip during hyperspace
                 bmi SKIP003             ;
 
                 ldx MAXSPCOBJIND        ; Update number of space objects
                 stx OLDMAXSPCOBJIND     ;
 
-LOOP003         lda PIXELROWNEW,X       ; Loop over all PLAYFIELD space objs (X index > 4)
+_next2          lda PIXELROWNEW,X       ; Loop over all PLAYFIELD space objs (X index > 4)
                 sta PIXELROW,X          ; Update pixel row number of PLAYFIELD space object
 
                 tay                     ;
@@ -240,8 +242,8 @@ LOOP003         lda PIXELROWNEW,X       ; Loop over all PLAYFIELD space objs (X 
                 sta MEMPTR+1            ;
 
                 lda PIXELCOLUMN,X       ; Convert pixel column number to within-row-offset
-                lsr A                   ; ...of byte with space obj pixel (4 pixels = 1 byte)
-                lsr A                   ;
+                lsr                     ; ...of byte with space obj pixel (4 pixels = 1 byte)
+                lsr                     ;
                 sta PIXELBYTEOFF,X      ; Store within-row-offset
 
                 tay                     ;
@@ -252,7 +254,7 @@ LOOP003         lda PIXELROWNEW,X       ; Loop over all PLAYFIELD space objs (X 
 
                 dex                     ;
                 cpx #NUMSPCOBJ_PL-1     ;
-                bne LOOP003             ; Next PLAYFIELD space object
+                bne _next2              ; Next PLAYFIELD space object
 
 ;*** (4) Clear PLAYFIELD center if idle counter is up (?) **********************
                                         ; PLAYFIELD addresses of...
@@ -262,7 +264,7 @@ PFMEM_C76R50    = PFMEM+50*40+76/4      ; ...pixel column number 76, row number 
 PFMEM_C80R50    = PFMEM+50*40+80/4      ; ...pixel column number 80, row number 50
 
 SKIP003         lda IDLECNTHI           ; Skip if idle counter not negative
-                bpl SKIP004             ;
+                bpl _1                  ;
 
                 lda #0                  ; Clear pixels of 8 x 2 pixel rectangle...
                 sta PFMEM_C76R50        ; ...@ column number 76, row number 49 (?)
@@ -271,41 +273,41 @@ SKIP003         lda IDLECNTHI           ; Skip if idle counter not negative
                 sta PFMEM_C76R49        ;
 
 ;*** (5) Clear all PLAYER shapes ***********************************************
-SKIP004         lda #0                  ; Clear shape of PLAYER4
+_1              lda #0                  ; Clear shape of PLAYER4
                 ldy PL4ROW              ;
                 ldx PL4HEIGHT           ;
-LOOP004         sta PL4DATA,Y           ;
+_next1          sta PL4DATA,Y           ;
                 iny                     ;
                 dex                     ;
-                bpl LOOP004             ;
+                bpl _next1              ;
 
                 ldy PL3ROW              ; Clear shape of PLAYER3
                 ldx PL3HEIGHT           ;
-LOOP005         sta PL3DATA,Y           ;
+_next2          sta PL3DATA,Y           ;
                 iny                     ;
                 dex                     ;
-                bpl LOOP005             ;
+                bpl _next2              ;
 
                 ldy PL2ROW              ; Clear shape of PLAYER2
                 ldx PL2HEIGHT           ;
-LOOP006         sta PL2DATA,Y           ;
+_next3          sta PL2DATA,Y           ;
                 iny                     ;
                 dex                     ;
-                bpl LOOP006             ;
+                bpl _next3              ;
 
                 ldy PL1ROW              ; Clear shape of PLAYER1
                 ldx PL1HEIGHT           ;
-LOOP007         sta PL1DATA,Y           ;
+_next4          sta PL1DATA,Y           ;
                 iny                     ;
                 dex                     ;
-                bpl LOOP007             ;
+                bpl _next4              ;
 
                 ldy PL0ROW              ; Clear shape of PLAYER0
                 ldx PL0HEIGHT           ;
-LOOP008         sta PL0DATA,Y           ;
+_next5          sta PL0DATA,Y           ;
                 iny                     ;
                 dex                     ;
-                bpl LOOP008             ;
+                bpl _next5              ;
 
 ;*** (6) Update PLAYER vertical positions and update PLAYER shapes *************
                 lda PL4SHAPTYPE         ; CARRY := PLAYER4 a PHOTON TORPEDO (shape type 0)?
@@ -319,14 +321,14 @@ LOOP008         sta PL0DATA,Y           ;
                 sta L_HEIGHTCNT         ;
                 sta PL4HEIGHT           ;
 
-LOOP009         lda PLSHAP1TAB,Y        ; Load PLAYER4 shape byte from shape data table
-                bcs SKIP005             ; Skip if PLAYER4 not PHOTON TORPEDO (shape type 0)
+_next6          lda PLSHAP1TAB,Y        ; Load PLAYER4 shape byte from shape data table
+                bcs _2                  ; Skip if PLAYER4 not PHOTON TORPEDO (shape type 0)
                 and RANDOM              ; and random bits to shape byte
-SKIP005         sta PL4DATA,X           ; Store shape byte in PLAYER4 data area
+_2              sta PL4DATA,X           ; Store shape byte in PLAYER4 data area
                 iny                     ;
                 inx                     ;
                 dec L_HEIGHTCNT         ;
-                bpl LOOP009             ; Next row of PLAYER4 shape
+                bpl _next6              ; Next row of PLAYER4 shape
 
                 lda PL3SHAPTYPE         ; Repeat above with PLAYER3
                 cmp #1                  ;
@@ -336,14 +338,14 @@ SKIP005         sta PL4DATA,X           ; Store shape byte in PLAYER4 data area
                 lda PL3HEIGHTNEW        ;
                 sta L_HEIGHTCNT         ;
                 sta PL3HEIGHT           ;
-LOOP010         lda PLSHAP1TAB,Y        ;
-                bcs SKIP006             ;
+_next7          lda PLSHAP1TAB,Y        ;
+                bcs _3                  ;
                 and RANDOM              ;
-SKIP006         sta PL3DATA,X           ;
+_3              sta PL3DATA,X           ;
                 inx                     ;
                 iny                     ;
                 dec L_HEIGHTCNT         ;
-                bpl LOOP010             ;
+                bpl _next7              ;
 
                 lda PL2SHAPTYPE         ; Repeat above with PLAYER2
                 cmp #1                  ;
@@ -353,14 +355,14 @@ SKIP006         sta PL3DATA,X           ;
                 lda PL2HEIGHTNEW        ;
                 sta L_HEIGHTCNT         ;
                 sta PL2HEIGHT           ;
-LOOP011         lda PLSHAP1TAB,Y        ;
-                bcs SKIP007             ;
+_next8          lda PLSHAP1TAB,Y        ;
+                bcs _4                  ;
                 and RANDOM              ;
-SKIP007         sta PL2DATA,X           ;
+_4              sta PL2DATA,X           ;
                 inx                     ;
                 iny                     ;
                 dec L_HEIGHTCNT         ;
-                bpl LOOP011             ;
+                bpl _next8              ;
 
                 ldy PL1SHAPOFF          ; Repeat above with PLAYER1 (without torpedo part)
                 ldx PL1ROWNEW           ;
@@ -368,12 +370,12 @@ SKIP007         sta PL2DATA,X           ;
                 lda PL1HEIGHTNEW        ;
                 sta L_HEIGHTCNT         ;
                 sta PL1HEIGHT           ;
-LOOP012         lda PLSHAP2TAB,Y        ;
+_next9          lda PLSHAP2TAB,Y        ;
                 sta PL1DATA,X           ;
                 inx                     ;
                 iny                     ;
                 dec L_HEIGHTCNT         ;
-                bpl LOOP012             ;
+                bpl _next9              ;
 
                 ldy PL0SHAPOFF          ; Repeat above with PLAYER0 (without torpedo part)
                 ldx PL0ROWNEW           ;
@@ -381,12 +383,12 @@ LOOP012         lda PLSHAP2TAB,Y        ;
                 lda PL0HEIGHTNEW        ;
                 sta L_HEIGHTCNT         ;
                 sta PL0HEIGHT           ;
-LOOP013         lda PLSHAP2TAB,Y        ;
+_next10         lda PLSHAP2TAB,Y        ;
                 sta PL0DATA,X           ;
                 inx                     ;
                 iny                     ;
                 dec L_HEIGHTCNT         ;
-                bpl LOOP013             ;
+                bpl _next10             ;
 
 ;*** (7) Update PLAYER horizontal positions ************************************
                 lda PL0COLUMN           ; Update horizontal position of PLAYER0
@@ -409,15 +411,15 @@ LOOP013         lda PLSHAP2TAB,Y        ;
 
 ;*** (8) Rotate space objects horizontally and vertically **********************
                 bit SHIPVIEW            ; Skip if in Galactic Chart view
-                bmi SKIP009             ;
+                bmi _6                  ;
 
 ;*** Rotate horizontally *******************************************************
                 lda JOYSTICKX           ; Skip if joystick centered horizontally
-                beq SKIP008             ;
+                beq _5                  ;
 
                 sta JOYSTICKDELTA       ; Save JOYSTICKX (used in subroutine ROTATE)
                 ldy MAXSPCOBJIND        ; Loop over all space objects in use
-LOOP014         sty L_ZPOSOFF           ; Save offset to z-coordinate
+_next11         sty L_ZPOSOFF           ; Save offset to z-coordinate
                 clc                     ;
 
                 tya                     ;
@@ -431,15 +433,15 @@ LOOP014         sty L_ZPOSOFF           ; Save offset to z-coordinate
                 ldy L_ZPOSOFF           ; Y := offset to z-coordinate
                 jsr ROTATE              ; Calc new z-coordinate (horizontal rot @ y-axis)
                 dey                     ;
-                bpl LOOP014             ; Next space object
+                bpl _next11             ; Next space object
 
 ;*** Rotate vertically *********************************************************
-SKIP008         lda JOYSTICKY           ; Skip if joystick centered vertically
-                beq SKIP009             ;
+_5              lda JOYSTICKY           ; Skip if joystick centered vertically
+                beq _6                  ;
 
                 sta JOYSTICKDELTA       ; Save JOYSTICKY (used in subroutine ROTATE)
                 ldy MAXSPCOBJIND        ; Loop over all space objects in use
-LOOP015         sty L_ZPOSOFF           ; Save offset to z-coordinate
+_next12         sty L_ZPOSOFF           ; Save offset to z-coordinate
                 clc                     ;
 
                 tya                     ;
@@ -453,17 +455,17 @@ LOOP015         sty L_ZPOSOFF           ; Save offset to z-coordinate
                 ldy L_ZPOSOFF           ; Y := offset to z-coordinate
                 jsr ROTATE              ; Calc new z-coordinate (vertical rot @ x-axis)
                 dey                     ;
-                bpl LOOP015             ; Next space object
+                bpl _next12             ; Next space object
 
 ;*** (9) Move all space objects along z-axis (toward our starship) *************
-SKIP009         ldx MAXSPCOBJIND        ; Loop over all space objects in use
-LOOP016         cpx #NUMSPCOBJ_PL       ; Skip if PLAYFIELD space object (X index > 4)
-                bcs SKIP010             ;
+_6              ldx MAXSPCOBJIND        ; Loop over all space objects in use
+_next13         cpx #NUMSPCOBJ_PL       ; Skip if PLAYFIELD space object (X index > 4)
+                bcs _7                  ;
 
                 lda PL0SHAPTYPE,X       ; Skip if next PLAYER space obj is PHOTON TORPEDO (!)
-                beq SKIP011             ;
+                beq _8                  ;
 
-SKIP010         sec                     ; New z-coordinate := old z-coordinate -
+_7              sec                     ; New z-coordinate := old z-coordinate -
                 lda ZPOSLO,X            ; ...our starship's velocity
                 sbc VELOCITYLO          ; (signed 24-bit subtraction)
                 sta ZPOSLO,X            ;
@@ -474,30 +476,30 @@ SKIP010         sec                     ; New z-coordinate := old z-coordinate -
                 sbc #0                  ;
                 sta ZPOSSIGN,X          ;
 
-SKIP011         dex                     ;
-                bpl LOOP016             ; Next space object
+_8              dex                     ;
+                bpl _next13             ; Next space object
 
 ;*** (10) Add space object's velocity vector to space object's position vector *
                 ldx MAXSPCOBJIND        ; Loop over all space objects in use
-LOOP017         cpx #NUMSPCOBJ_NORM-1   ; Skip if space object is star (X index 5..16)...
-                bne SKIP012             ; ...because stars don't move by themselves
+_next14         cpx #NUMSPCOBJ_NORM-1   ; Skip if space object is star (X index 5..16)...
+                bne _9                  ; ...because stars don't move by themselves
                 ldx #4                  ;
 
-SKIP012         txa                     ;
-LOOP018         tay                     ; Loop over all 3 coordinates
+_9              txa                     ;
+_next15         tay                     ; Loop over all 3 coordinates
 
                 lda #0                  ; Expand 8-bit velocity vector component to 16-bit:
                 sta L_VELOCITYHI        ; ...16-bit velocity (high byte) = L_VELOCITYHI := 0
                 lda ZVEL,Y              ; ...16-bit velocity (low byte)  = A := ZVEL,Y
-                bpl SKIP013             ; Skip if 16-bit velocity >= 0 (positive)
+                bpl _10                 ; Skip if 16-bit velocity >= 0 (positive)
 
                 eor #$7F                ; 16-bit velocity < 0 (negative)...
                 clc                     ; ...calculate two's-complement of 16-bit velocity
                 adc #1                  ;
-                bcs SKIP013             ;
+                bcs _10                 ;
                 dec L_VELOCITYHI        ;
 
-SKIP013         clc                     ; New coordinate := old coordinate + 16-bit velocity
+_10             clc                     ; New coordinate := old coordinate + 16-bit velocity
                 adc ZPOSLO,Y            ; (signed 24-bit addition)
                 sta ZPOSLO,Y            ;
                 lda ZPOSHI,Y            ;
@@ -511,54 +513,54 @@ SKIP013         clc                     ; New coordinate := old coordinate + 16-
                 clc                     ;
                 adc #NUMSPCOBJ_ALL      ;
                 cmp #144                ; (!)
-                bcc LOOP018             ; Next coordinate
+                bcc _next15             ; Next coordinate
 
                 dex                     ;
-                bpl LOOP017             ; Next space object
+                bpl _next14             ; Next space object
 
 ;*** (11) Correct over/underflow of PLAYER space objects' position vector ******
                 ldy #NUMSPCOBJ_PL-1     ;
-LOOP019         tya                     ; Loop over all PLAYER space objects (X index < 5)
+_next16         tya                     ; Loop over all PLAYER space objects (X index < 5)
                 tax                     ;
 
                 lda #2                  ; Loop over all 3 coordinates
                 sta L_VECCOMPIND        ;
 
-LOOP020         lda ZPOSSIGN,X          ; Load sign of coordinate
+_next17         lda ZPOSSIGN,X          ; Load sign of coordinate
                 cmp #2                  ;
-                bcc SKIP015             ; Skip if sign = 0 (negative) or 1 (positive)
+                bcc _12                 ; Skip if sign = 0 (negative) or 1 (positive)
 
-                asl A                   ; SUMMARY: Space object out-of-bounds correction
+                asl                     ; SUMMARY: Space object out-of-bounds correction
                 lda #0                  ; If new coordinate > +65535 <KM> subtract 256 <KM>
                 sta ZPOSSIGN,X          ; ...until new coordinate <= +65535 <KM>
-                bcs SKIP014             ; If new coordinate < -65536 <KM> add 256 <KM>
+                bcs _11                 ; If new coordinate < -65536 <KM> add 256 <KM>
                 inc ZPOSSIGN,X          ; ...until new coordinate >= -65536 <KM>
                 eor #$FF                ;
-SKIP014         sta ZPOSHI,X            ;
+_11             sta ZPOSHI,X            ;
 
-SKIP015         txa                     ;
+_12             txa                     ;
                 clc                     ;
                 adc #NUMSPCOBJ_ALL      ;
                 tax                     ;
                 dec L_VECCOMPIND        ;
-                bpl LOOP020             ; Next coordinate
+                bpl _next17             ; Next coordinate
 
                 dey                     ;
-                bpl LOOP019             ; Next space object
+                bpl _next16             ; Next space object
 
 ;*** (12) Calc perspective projection of space objects *************************
                 lda SHIPVIEW            ; Skip if in Long-Range Scan or Galactic Chart view
                 cmp #$02                ;
-                bcs SKIP019             ;
+                bcs _18                 ;
 
                 ldx MAXSPCOBJIND        ; Loop over all space objects in use
-LOOP021         lda #255                ; Prep magic offscreen pixel number value
+_next18         lda #255                ; Prep magic offscreen pixel number value
                 ldy ZPOSSIGN,X          ; Compare sign of z-coordinate with view mode
                 cpy SHIPVIEW            ;
-                beq SKIP018             ; Equal? Space object is offscreen -> New space obj!
+                beq _17                 ; Equal? Space object is offscreen -> New space obj!
 
                 lda YPOSSIGN,X          ; Prepare projection division...
-                bne SKIP016             ; DIVIDEND (16-bit value) := ABS(y-coordinate)
+                bne _13                 ; DIVIDEND (16-bit value) := ABS(y-coordinate)
                 sec                     ; (used in subroutine PROJECTION)
                 lda #0                  ;
                 sbc YPOSLO,X            ;
@@ -566,17 +568,17 @@ LOOP021         lda #255                ; Prep magic offscreen pixel number valu
                 lda #0                  ;
                 sbc YPOSHI,X            ;
                 sta DIVIDEND+1          ;
-                jmp JUMP001             ;
-SKIP016         lda YPOSLO,X            ;
+                jmp _14                 ;
+_13             lda YPOSLO,X            ;
                 sta DIVIDEND            ;
                 lda YPOSHI,X            ;
                 sta DIVIDEND+1          ;
 
-JUMP001         jsr PROJECTION          ; Calc pixel row number rel. to screen center
+_14             jsr PROJECTION          ; Calc pixel row number rel. to screen center
                 jsr SCREENROW           ; Calc pixel row number rel. to top-left of screen
 
                 lda XPOSSIGN,X          ; Prepare projection division...
-                bne SKIP017             ; DIVIDEND (16-bit value) := ABS(x-coordinate)
+                bne _15                 ; DIVIDEND (16-bit value) := ABS(x-coordinate)
                 sec                     ; (used in subroutine PROJECTION)
                 lda #0                  ;
                 sbc XPOSLO,X            ;
@@ -584,49 +586,49 @@ JUMP001         jsr PROJECTION          ; Calc pixel row number rel. to screen c
                 lda #0                  ;
                 sbc XPOSHI,X            ;
                 sta DIVIDEND+1          ;
-                jmp JUMP002             ;
-SKIP017         lda XPOSLO,X            ;
+                jmp _16                 ;
+_15             lda XPOSLO,X            ;
                 sta DIVIDEND            ;
                 lda XPOSHI,X            ;
                 sta DIVIDEND+1          ;
 
-JUMP002         jsr PROJECTION          ; Calc pixel column number rel. to screen center
-SKIP018         jsr SCREENCOLUMN        ; Calc pixel column number rel. to top-left of screen
+_16             jsr PROJECTION          ; Calc pixel column number rel. to screen center
+_17             jsr SCREENCOLUMN        ; Calc pixel column number rel. to top-left of screen
                 dex                     ;
-                bpl LOOP021             ; Next space object
+                bpl _next18             ; Next space object
 
 ;*** (13) Handle hyperwarp marker selection in Galactic Chart view *************
-SKIP019         jsr SELECTWARP          ; Handle hyperwarp marker in Galactic Chart view
+_18             jsr SELECTWARP          ; Handle hyperwarp marker in Galactic Chart view
 
 ;*** (14) Compute and draw Long-Range Scan view star field on z-x plane ********
                 bit SHIPVIEW            ; Skip if not in Long-Range Scan view
                 bvc SKIP022             ;
 
                 ldx #$31                ; Draw our starship's shape
-                jsr DRAWLINES           ;
+                jsr DrawLines           ;
 
                 bit GCSTATLRS           ; Skip if Long-Range Scan destroyed
                 bvs SKIP022             ;
 
                 ldx MAXSPCOBJIND        ; Loop over all space objects in use
-LOOP022         lda ZPOSHI,X            ; Load z-coordinate (high byte)
+_next19         lda ZPOSHI,X            ; Load z-coordinate (high byte)
                 ldy ZPOSSIGN,X          ; Load sign of z-coordinate
-                bne SKIP020             ;
+                bne _19                 ;
                 eor #$FF                ; A := ABS(z-coordinate (high byte))
-SKIP020         tay                     ;
+_19             tay                     ;
                 lda MAPTO80,Y           ; Calc pixel row number rel. to screen center
                 jsr SCREENROW           ; Calc pixel row number rel. to top-left of screen
 
                 lda XPOSHI,X            ; Load x-coordinate (high byte)
                 ldy XPOSSIGN,X          ; Load sign of x-coordinate
-                bne SKIP021             ;
+                bne _20                 ;
                 eor #$FF                ; A := ABS(x-coordinate (high byte))
-SKIP021         tay                     ;
+_20             tay                     ;
                 lda MAPTO80,Y           ; Calc pixel column number rel. to screen center
                 jsr SCREENCOLUMN        ; Calc pixel column number rel. to top-left of screen
 
                 dex                     ;
-                bpl LOOP022             ; Next space object
+                bpl _next19             ; Next space object
 
 ;*** (15) Update PLAYER shapes, heights, and colors ****************************
 
@@ -655,7 +657,7 @@ SKIP021         tay                     ;
 ;          counter actually, that will make the starbase pulsate in brightness.
 ;
 ;     BUG (at $A512): The code at $A512 that skips the combination operation for
-;     PLAYER2..4 jumps for PLAYER3..4 to SKIP025 at $A52A instead of SKIP026 at
+;     PLAYER2..4 jumps for PLAYER3..4 to _3 at $A52A instead of _4 at
 ;     $A52E. Thus it stores a color mask which does not only make the starbase
 ;     PLAYER0..2 pulsate in brightness but also PLAYER3..4 in a starbase sector,
 ;     for example the transfer vessel, photon torpedoes, etc. - or even the
@@ -707,30 +709,30 @@ SKIP021         tay                     ;
 ;     using the precomputed pulsating brightness value for a starbase.
 
 SKIP022         ldx #NUMSPCOBJ_PL       ; Loop over all PLAYER space objects (X index < 5)
-LOOP023         dex                     ;
-                bpl SKIP023             ; Jump into loop body below
-                jmp JUMP003             ; Loop is finished, skip loop body
+_next1          dex                     ;
+                bpl _1                  ; Jump into loop body below
+                jmp _8                  ; Loop is finished, skip loop body
 
 ;*** Clear PLAYER shape offsets and heights ************************************
-SKIP023         lda #0                  ;
+_1              lda #0                  ;
                 sta PL0SHAPOFF,X        ; Clear PLAYER shape offset
                 sta PL0HEIGHTNEW,X      ; Clear new PLAYER shape height
 
 ;*** Preload stuff for hyperwarp markers and Long-Range Scan blips *************
                 bit SHIPVIEW            ; Skip if not in Galactic Chart view
-                bpl SKIP024             ;
+                bpl _2                  ;
 
                 cpx #3                  ; Next PLAYER space object if PLAYER0..2
-                bcc LOOP023             ;
+                bcc _next1              ;
 
-LOOP024         lda RANDOM              ; Prep random color mask for warp markers/LRS blips
+_next2          lda RANDOM              ; Prep random color mask for warp markers/LRS blips
                 ldy #$F2                ; Prep magic z-coordinate for warp markers/LRS blips
-                bmi SKIP026             ; Unconditional jump
+                bmi _4                  ; Unconditional jump
 
-SKIP024         cmp PL0LIFE,X           ; Next PLAYER space object if this PLAYER not alive
-                beq LOOP023             ;
+_2              cmp PL0LIFE,X           ; Next PLAYER space object if this PLAYER not alive
+                beq _next1              ;
 
-                bvs LOOP024             ; Skip back if in Long-Range Scan view
+                bvs _next2              ; Skip back if in Long-Range Scan view
 
 ;*** Preload stuff for other views *********************************************
 
@@ -738,10 +740,10 @@ SKIP024         cmp PL0LIFE,X           ; Next PLAYER space object if this PLAYE
 
 ;*** Combine PLAYER0..2 to starbase shape **************************************
                 bit ISSTARBASESECT      ; Skip if no starbase in this sector
-                bvc SKIP026             ;
+                bvc _4                  ;
 
                 cpx #2                  ; Skip if PLAYER2..4
-                bcs SKIP025             ; (!)
+                bcs _3                  ; (!)
 
                 lda PL2COLUMN           ; Calc new PM pixel column number for PLAYER0..1:
                 clc                     ; Load PLAYER2 (starbase center) pixel column number
@@ -755,34 +757,34 @@ SKIP024         cmp PL0LIFE,X           ; Next PLAYER space object if this PLAYE
 
                 ldy PL2ZPOSHI           ; Prep Y with z-coordinate (high byte) of starbase
 
-SKIP025         lda COUNT256            ; Prep color mask with B3..0 of counter
+_3              lda COUNT256            ; Prep color mask with B3..0 of counter
                 and #$0F                ; ...(= brightness bits cause pulsating brightness)
 
-SKIP026         sta L_COLORMASK         ; Store color mask
+_4              sta L_COLORMASK         ; Store color mask
 
 ;*** Check if PLAYER is below PLAYFIELD bottom edge ****************************
                 tya                     ; A := z-coordinate (high byte)
 
                 ldy PL0ROWNEW,X         ; Next PLAYER space object if top of PM shape...
                 cpy #204                ; ...is below PLAYFIELD bottom... (!)
-                bcs LOOP023             ; ...(PM pixel row number >= 204)
+                bcs _next1              ; ...(PM pixel row number >= 204)
 
 ;*** Convert PLAYER z-coordinate to range index in 0..15 ***********************
                 ldy SHIPVIEW            ; Skip if in Front view...
-                beq SKIP027             ;
+                beq _5                  ;
                 eor #$FF                ; ...else invert z-coordinate (high byte)
 
-SKIP027         cmp #$20                ; Next PLAYER space object if this one too far away
-                bcs LOOP023             ; ...(z-coordinate >= $20** (8192) <KM>)
+_5              cmp #$20                ; Next PLAYER space object if this one too far away
+                bcs _next1                  ; ...(z-coordinate >= $20** (8192) <KM>)
 
                 cmp #16                 ; Load z-coordinate (high byte) and...
-                bcc SKIP028             ;
+                bcc _6                  ;
                 lda #15                 ;
-SKIP028         sta L_RANGEINDEX        ; ...trim to range index in 0..15
+_6              sta L_RANGEINDEX        ; ...trim to range index in 0..15
 
 ;*** Update PLAYER shape offset and height *************************************
                 ora PL0SHAPTYPE,X       ; Calc offset to shape table (shape type+range index)
-                lsr A                   ;
+                lsr                     ;
                 tay                     ; Divide by 2 to get offset in 0..7 into shape data
                 lda PLSHAPOFFTAB,Y      ; Update new PLAYER shape offset
                 sta PL0SHAPOFF,X        ;
@@ -791,59 +793,59 @@ SKIP028         sta L_RANGEINDEX        ; ...trim to range index in 0..15
 
 ;*** Calculate PLAYER color/brightness value ***********************************
                 tya                     ; Pick color (B7..4) using PLAYER shape type
-                lsr A                   ;
-                lsr A                   ;
-                lsr A                   ;
+                lsr                     ;
+                lsr                     ;
+                lsr                     ;
                 tay                     ;
                 lda PLSHAPCOLORTAB,Y    ;
                 cpy #8                  ; Pick random color if ZYLON BASESTAR (shape type 8)
-                bne SKIP029             ;
+                bne _7                  ;
                 eor RANDOM              ;
-SKIP029         ldy L_RANGEINDEX        ;
+_7              ldy L_RANGEINDEX        ;
                 eor PLSHAPBRITTAB,Y     ; Pick brightness (B3..0) using range index and merge
 
                 eor L_COLORMASK         ; Modify color/brightness of PLAYER
 
                 ldy PLCOLOROFFTAB,X     ; Get PLAYER color offset
                 sta PL0COLOR,Y          ; Store color in PLAYER color register
-                jmp LOOP023             ; Next PLAYER space object
+                jmp _next1              ; Next PLAYER space object
 
 ;*** (16) Flash red alert ******************************************************
-JUMP003         ldy #$AF                ; Prep PLAYFIELD2 color {BRIGHT BLUE-GREEN}
+_8              ldy #$AF                ; Prep PLAYFIELD2 color {BRIGHT BLUE-GREEN}
                 ldx SHIELDSCOLOR        ; Prep Shields color {DARK GREEN} or {BLACK}
 
                 lda REDALERTLIFE        ; Skip if red alert is over
-                beq SKIP030             ;
+                beq _9                  ;
 
                 dec REDALERTLIFE        ; Decrement lifetime of red alert
                 ldy #$4F                ; Prep PLAYFIELD2 color {BRIGHT ORANGE}
 
                 and #$20                ; Switch colors every 64 game loops
-                beq SKIP030             ;
+                beq _9                  ;
 
                 ldx #$42                ; Load BACKGROUND color {DARK ORANGE}
                 ldy #$60                ; Load PLAYFIELD2 color {DARK PURPLE BLUE}
 
-SKIP030         sty PF2COLOR            ; Store PLAYFIELD2 color
+_9              sty PF2COLOR            ; Store PLAYFIELD2 color
                 stx BGRCOLOR            ; Store BACKGROUND color
 
 ;*** (17) Update color of PLAYFIELD space objects (stars, explosion fragments) *
                 ldx MAXSPCOBJIND        ; Loop over all PLAYFIELD space objs (X index > 4)
-LOOP025         lda ZPOSHI,X            ; Prep z-coordinate (high byte)
+_next3          lda ZPOSHI,X            ; Prep z-coordinate (high byte)
                 ldy SHIPVIEW            ;
                 cpy #1                  ; Skip if not in Aft view
-                bne SKIP032             ;
+                bne _11                 ;
 
                 cmp #$F0                ; Skip if star not too far (z < $F0** (-4096) <KM>)
-                bcs SKIP031             ;
+                bcs _10                 ;
                 jsr INITPOSVEC          ; Re-init position vector
-SKIP031         eor #$FF                ; Invert z-coordinate (high byte)
+_10             eor #$FF                ; Invert z-coordinate (high byte)
 
-SKIP032         cmp #16                 ; Convert z-coordinate (high byte)
-                bcc SKIP033             ; ...into range index 0..15
+_11             cmp #16                 ; Convert z-coordinate (high byte)
+                bcc _12                 ; ...into range index 0..15
                 lda #15                 ;
 
-SKIP033         asl A                   ; Compute index to pixel color table:
+_12             asl                     ; Compute index to pixel color table:
                 and #$1C                ; Use bits B3..1 from range index as B4..2.
                 ora COUNT8              ; Combine with random bits B3..0 from counter
 
@@ -860,15 +862,15 @@ SKIP033         asl A                   ; Compute index to pixel color table:
 
                 dex                     ;
                 cpx #NUMSPCOBJ_PL       ;
-                bcs LOOP025             ; Next PLAYFIELD space object
+                bcs _next3              ; Next PLAYFIELD space object
 
 ;*** (18) Skip input handling if in demo mode **********************************
                 bit ISDEMOMODE          ; If in demo mode skip to function keys
-                bvc SKIP034             ;
-                jmp SKIP040             ;
+                bvc _13                 ;
+                jmp _19                 ;
 
 ;*** (19) Handle keyboard input ************************************************
-SKIP034         jsr KEYBOARD            ; Handle keyboard input
+_13             jsr KEYBOARD            ; Handle keyboard input
 
 ;*** (20) Handle joystick input ************************************************
                 lda PORTA               ; Load Joystick 0 directions
@@ -878,103 +880,103 @@ SKIP034         jsr KEYBOARD            ; Handle keyboard input
                 lda STICKINCTAB,X       ; JOYSTICKY :=  0 -> Centered
                 sta JOYSTICKY           ; JOYSTICKY := -1 -> Down
                 tya                     ;
-                lsr A                   ;
-                lsr A                   ;
+                lsr                     ;
+                lsr                     ;
                 and #$03                ;
                 tax                     ; JOYSTICKX := -1 -> Left
                 lda STICKINCTAB,X       ; JOYSTICKX :=  0 -> Centered
                 sta JOYSTICKX           ; JOYSTICKX := +1 -> Right
 
 ;*** (21) Check if our starship's photon torpedoes have hit a target ***********
-                jsr COLLISION           ; Check if our starship's photon torpedoes have hit
+                jsr Collision           ; Check if our starship's photon torpedoes have hit
 
 ;*** (22) Handle joystick trigger **********************************************
                 jsr TRIGGER             ; Handle joystick trigger
 
 ;*** (23) Handle Attack Computer and Tracking Computer *************************
                 bit GCSTATCOM           ; Skip if Attack Computer destroyed
-                bvs SKIP038             ;
+                bvs _17                 ;
 
                 lda DRAINATTCOMP        ; Skip if Attack Computer off
-                beq SKIP038             ;
+                beq _17                 ;
 
                 lda SHIPVIEW            ; Skip if not in Front view
-                bne SKIP035             ;
+                bne _14                 ;
 
                 jsr UPDATTCOMP          ; Update Attack Computer Display
 
-SKIP035         ldx TRACKDIGIT          ; Load index of tracked space object
+_14             ldx TRACKDIGIT          ; Load index of tracked space object
 
                 lda ZYLONATTACKER       ; Skip if ship of current Zylon torpedo is tracked
-                bmi SKIP036             ;
+                bmi _15                 ;
                 tax                     ; ...else override Tracking Computer...
                 ora #$80                ;
                 sta ZYLONATTACKER       ; ...and mark Zylon torpedo's ship as being tracked
 
-SKIP036         lda PL0LIFE,X           ; Skip if tracked space object still alive
-                bne SKIP037             ;
+_15             lda PL0LIFE,X           ; Skip if tracked space object still alive
+                bne _16                 ;
 
                 txa                     ;
                 eor #$01                ;
                 tax                     ;
                 lda PL0LIFE,X           ; Check if other Zylon ship still alive
-                bne SKIP037             ; ...yes -> Keep new index
+                bne _16                 ; ...yes -> Keep new index
                 ldx TRACKDIGIT          ; ...no  -> Revert to old index of tracked space obj
 
-SKIP037         stx TRACKDIGIT          ; Store index of tracked space object
+_16             stx TRACKDIGIT          ; Store index of tracked space object
 
                 lda ISTRACKCOMPON       ; Skip if tracking computer is turned off
-                beq SKIP038             ;
+                beq _17                 ;
 
                 lda SHIPVIEW            ; Skip if in Long-Range Scan or Galactic Chart view
                 cmp #2                  ;
-                bcs SKIP038             ;
+                bcs _17                 ;
 
                 eor #$01                ;
                 cmp ZPOSSIGN,X          ; Skip if tracked space object in our starship's...
-                beq SKIP038             ; ...view direction
+                beq _17                 ; ...view direction
 
                 tax                     ;
                 lda TRACKKEYSTAB,X      ; Pick 'F' or 'A' (Front or Aft view) keyboard code
                 sta KEYCODE             ; ...and store it (= emulate pressing 'F' or 'A' key)
 
 ;*** (24) Handle docking to starbase *******************************************
-SKIP038         jsr DOCKING             ; Handle docking to starbase
+_17             jsr Docking             ; Handle docking to starbase
 
 ;*** (25) Handle maneuvering ***************************************************
                 jsr MANEUVER            ; Handle maneuvering photon torpedoes and Zylon ships
 
 ;*** (26) Was our starship hit by Zylon photon torpedo? ************************
                 lda ISSTARBASESECT      ; Skip hit check if in starbase sector
-                bne SKIP040             ;
+                bne _19                 ;
 
                 lda PL2LIFE             ; Skip hit check if PLAYER2 (Zylon photon torpedo)...
-                beq SKIP040             ; ...not alive
+                beq _19                 ; ...not alive
 
                 ldy PL2ZPOSHI           ; Our starship was not hit if Zylon photon torpedo's
                 iny                     ; ...z-coordinate is not in -256..255 <KM> or...
                 cpy #$02                ;
-                bcs SKIP040             ;
+                bcs _19                 ;
 
                 ldy PL2XPOSHI           ; ...x-coordinate is not in -256..255 <KM> or...
                 iny                     ;
                 cpy #$02                ;
-                bcs SKIP040             ;
+                bcs _19                 ;
 
                 ldy PL2YPOSHI           ; ...y-coordinate is not in -256..255 <KM>.
                 iny                     ;
                 cpy #$02                ;
-                bcs SKIP040             ;
+                bcs _19                 ;
 
 ;*** (27) Our starship was hit! ************************************************
-                jsr DAMAGE              ; Damage or destroy some subsystem
+                jsr Damage              ; Damage or destroy some subsystem
 
                 ldy #2                  ; Trigger explosion at PLAYER2 (Zylon photon torpedo)
                 jsr INITEXPL            ;
 
                 ldx #$7F                ; Prep HITBADNESS := SHIELDS HIT
                 lda SHIELDSCOLOR        ; Skip if Shields are up (SHIELDSCOLOR not {BLACK}).
-                bne SKIP039             ;
+                bne _18                 ;
 
                 ldx #$0A                ; Set Front view
                 jsr SETVIEW             ;
@@ -995,45 +997,45 @@ SKIP038         jsr DOCKING             ; Handle docking to starbase
 
                 ldx #$FF                ; Prep HITBADNESS := STARSHIP DESTROYED
 
-SKIP039         stx HITBADNESS          ; Store HITBADNESS
+_18             stx HITBADNESS          ; Store HITBADNESS
                 lda #0                  ; Zylon photon torpedo lifetime := 0 game loops
                 sta PL2LIFE             ;
                 lda #2                  ; Init Zylon photon torpedo trigger
                 sta TORPEDODELAY        ;
 
                 ldx #1                  ; ENERGY := ENERGY - 100 after photon torpedo hit
-                jsr DECENERGY           ;
+                jsr DecreaseEnergy      ;
 
                 ldx #$0A                ; Play noise sound pattern SHIELD EXPLOSION
                 jsr NOISE               ;
 
 ;*** (28) Handle function keys *************************************************
-SKIP040         ldy FKEYCODE            ; Prep old function key code
+_19             ldy FKEYCODE            ; Prep old function key code
                 lda CONSOL              ; POKEY: Load function key code
 
                 eor #$FF                ; Store inverted and masked function key code
                 and #$03                ;
                 sta FKEYCODE            ;
-                beq SKIP042             ; Skip if no function key pressed
+                beq _21                 ; Skip if no function key pressed
 
                 dey                     ;
-                bpl SKIP042             ; Skip if SELECT or START still pressed
+                bpl _21                 ; Skip if SELECT or START still pressed
                 sta IDLECNTHI           ; Reset idle counter to a value in 1..3 (?)
                 cmp #2                  ; Skip if SELECT function key pressed
-                bcs SKIP041             ;
+                bcs _20                 ;
 
                 lda #0                  ; START function key pressed:
                 tay                     ; Prep empty title phrase offset
-                jmp INITSTART           ; Reenter game loop via INITSTART
+                jmp InitGame.START      ; Reenter game loop via START
 
-SKIP041         inc MISSIONLEVEL        ; SELECT function key pressed:
+_20             inc MISSIONLEVEL        ; SELECT function key pressed:
                 lda MISSIONLEVEL        ; Cycle through next of 4 mission levels
                 and #$03                ;
                 sta MISSIONLEVEL        ;
-                jmp INITSELECT          ; Reenter game loop via INITSELECT
+                jmp InitGame.SELECT     ; Reenter game loop via SELECT
 
 ;*** (29) Update Control Panel Display *****************************************
-SKIP042         jsr UPDPANEL            ; Update Control Panel Display
+_21             jsr UPDPANEL            ; Update Control Panel Display
 
 ;*** (30) Handle hyperwarp *****************************************************
                 jsr HYPERWARP           ; Handle hyperwarp
@@ -1046,3 +1048,5 @@ SKIP042         jsr UPDPANEL            ; Update Control Panel Display
 
 ;*** (33) Jump back to begin of game loop **************************************
                 jmp GAMELOOP            ; Next game loop iteration
+
+                ;.endproc

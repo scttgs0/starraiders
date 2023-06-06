@@ -1,3 +1,4 @@
+
 ;*******************************************************************************
 ;*                                                                             *
 ;*                                  VBIHNDLR                                   *
@@ -32,7 +33,8 @@
 ; registers pushed on the stack during entry of this subroutine. Suggested fix:
 ; None.
 
-VBIHNDLR        lda #$FF                ; Signals entering Vertical Blank Interrupt
+VBIHNDLR        ;.proc
+                lda #$FF                ; Signals entering Vertical Blank Interrupt
                 sta ISVBISYNC           ;
 
                 lda #>ROMCHARSET        ; Switch character set to ROM character set
@@ -41,38 +43,43 @@ VBIHNDLR        lda #$FF                ; Signals entering Vertical Blank Interr
                 ldx BGRCOLOR            ; Preload BACKGROUND color
                 lda RANDOM              ; Preload random number
                 bit HITBADNESS          ; Check if our starship was hit
-                bvc SKIP044             ; If HITBADNESS has a value of...
-                bmi SKIP043             ; $00 -> NO HIT             (BGR color := unchanged)
+                bvc _2                  ; If HITBADNESS has a value of...
+                bmi _1                  ; $00 -> NO HIT             (BGR color := unchanged)
+
                 and #$72                ; $7F -> SHIELDS HIT        (BGR color := %01rr00r0)
                 ora #$40                ; $FF -> STARSHIP DESTROYED (BGR color := %01rr00r0)
-SKIP043         tax                     ;
-SKIP044         lda SHIPVIEW            ; Skip if in Front or Aft view
+_1              tax                     ;
+_2              lda SHIPVIEW            ; Skip if in Front or Aft view
                 cmp #3                  ; (!)
-                bcc SKIP045             ;
+                bcc _3                  ;
+
                 ldx #$A0                ; Preload BACKGROUND color {DARK BLUE GREEN}...
-SKIP045         stx BGRCOLOR            ; Store BACKGROUND color
+_3              stx BGRCOLOR            ; Store BACKGROUND color
 
                 ldx #8                  ; Copy all color registers to hardware registers
-LOOP026         lda PL0COLOR,X          ;
+_next1          lda PL0COLOR,X          ;
                 sta COLPM0,X            ;
                 dex                     ;
-                bpl LOOP026             ;
+                bpl _next1              ;
 
                 sta HITCLR              ; Clear Player/Missile collision registers
 
                 jsr SOUND               ; Call sound effects
 
                 inc IDLECNTLO           ; Increment 16-bit idle counter
-                bne SKIP046             ;
+                bne _XIT                ;
                 lda IDLECNTHI           ;
-                bmi SKIP046             ;
+                bmi _XIT                ;
                 inc IDLECNTHI           ;
-                bpl SKIP046             ; Skip if idle counter value of $8000 not reached yet
+                bpl _XIT                ; Skip if idle counter value of $8000 not reached yet
 
                 ldy #$00                ; Prep empty title phrase offset
-                jmp INITDEMO            ; Enter demo mode (!)
+                jmp InitGame.DEMO       ; Enter demo mode (!)
 
-SKIP046         jmp JUMP004             ; Return via DLI return code
+_XIT            jmp DLSTHNDLR._XIT      ; Return via DLI return code
+
+                ;.endproc
+
 
 ;*******************************************************************************
 ;*                                                                             *
@@ -95,7 +102,8 @@ SKIP046         jmp JUMP004             ; Return via DLI return code
 ; (our starship's photon torpedoes) are copied to the corresponding zero page
 ; variables PL3HIT ($82) and PL4HIT ($83).
 
-DLSTHNDLR       pha                     ; Push A
+DLSTHNDLR       ;.proc
+                pha                     ; Push A
                 txa                     ;
                 pha                     ; Push X
                 tya                     ;
@@ -104,16 +112,16 @@ DLSTHNDLR       pha                     ; Push A
                 lda #>ROMCHARSET        ; Switch to ROM charset if ANTIC line counter = 96
                 ldy VCOUNT              ; ...else switch to custom character set
                 cpy #96                 ;
-                beq SKIP047             ;
+                beq _1                  ;
                 lda #>CHARSET           ;
-SKIP047         sta CHBASE              ;
+_1              sta CHBASE              ;
 
                 ldx #4                  ; Loop over all PLAYFIELD colors
                 sta WSYNC               ; Stop and wait for horizontal TV beam sync
-LOOP027         lda PF0COLORDLI,X       ; Copy DLI PLAYFIELD colors to hardware registers
+_next1          lda PF0COLORDLI,X       ; Copy DLI PLAYFIELD colors to hardware registers
                 sta COLPF0,X            ;
                 dex                     ;
-                bpl LOOP027             ; Next PLAYFIELD color
+                bpl _next1              ; Next PLAYFIELD color
 
                 lda M0PL                ; Merge MISSILE-to-PLAYER collision registers...
                 ora M1PL                ;
@@ -123,12 +131,14 @@ LOOP027         lda PF0COLORDLI,X       ; Copy DLI PLAYFIELD colors to hardware 
                 lda P3PL                ; Copy PLAYER3-to-PLAYER coll. register to PL3HIT
                 sta PL3HIT              ;
 
-JUMP004         pla                     ; Pop Y
+_XIT            pla                     ; Pop Y
                 tay                     ;
                 pla                     ; Pop X
                 tax                     ;
                 pla                     ; Pop A
                 rti                     ; Return from interrupt
+                ;.endproc
+
 
 ;*******************************************************************************
 ;*                                                                             *
@@ -146,7 +156,8 @@ JUMP004         pla                     ; Pop Y
 ; hardware code is collected and the bits of the SHIFT and CONTROL keys are
 ; added. The resulting keyboard code is stored in KEYCODE ($CA).
 
-IRQHNDLR        pha                     ; Push A
+IRQHNDLR        ;.proc
+                pha                     ; Push A
                 lda #0                  ; POKEY: Disable all IRQs
                 sta IRQEN               ;
                 lda #$40                ; POKEY: Enable keyboard interrupt (IRQ)
@@ -156,3 +167,4 @@ IRQHNDLR        pha                     ; Push A
                 sta KEYCODE             ; Store keyboard code
                 pla                     ; Pop A
                 rti                     ; Return from interrupt
+                ;.endproc

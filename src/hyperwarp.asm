@@ -1,3 +1,4 @@
+
 ;*******************************************************************************
 ;*                                                                             *
 ;*                                  HYPERWARP                                  *
@@ -102,7 +103,7 @@
 ;
 ;      During subsequent passes of the HYPERSPACE PHASE, the calculated
 ;      hyperwarp energy is decremented in chunks of 10 energy units. Code
-;      execution returns via calling subroutine DECENERGY ($B86F), which
+;      execution returns via calling subroutine DecreaseEnergy ($B86F), which
 ;      decrements our starship's energy. After the calculated hyperwarp energy
 ;      is spent the DECELERATION PHASE is entered.
 ;
@@ -150,21 +151,26 @@
 ;      iterations, playing the beeper sound pattern RED ALERT in subroutine BEEP
 ;      ($B3A6) and setting the title phrase to "RED ALERT".
 
-HYPERWARP       ldy WARPSTATE           ; Return if hyperwarp not engaged
-                beq SKIP066             ;
+
+;======================================
+; Handle hyperwarp
+;======================================
+HYPERWARP       .proc
+                ldy WARPSTATE           ; Return if hyperwarp not engaged
+                beq _XIT1               ;
 
                 lda VELOCITYLO          ; If velocity >= 254 <KM/H> skip to HYPERSPACE PHASE
                 cmp #254                ;
-                bcs SKIP067             ;
+                bcs _4                  ;
 
                 cmp #128                ; If velocity < 128 <KM/H> skip to ACCELERATION PHASE
-                bcc SKIP063             ;
+                bcc _1                  ;
 
 ;*** STAR TRAIL PHASE **********************************************************
                 jsr INITTRAIL           ; Init star trail
 
 ;*** ACCELERATION PHASE ********************************************************
-SKIP063         lda #3                  ; Track Hyperwarp Target Marker (PLAYER3)
+_1              lda #3                  ; Track Hyperwarp Target Marker (PLAYER3)
                 sta TRACKDIGIT          ;
 
                 lda #SHAP_HYPERWARP     ; PLAYER3 is HYPERWARP TARGET MARKER (shape type 9)
@@ -191,20 +197,20 @@ SKIP063         lda #3                  ; Track Hyperwarp Target Marker (PLAYER3
                 sta WARPARRVCOLUMN      ;
 
                 lda MISSIONLEVEL        ; Skip if NOVICE mission
-                beq SKIP065             ;
+                beq _3                  ;
 
                 lda RANDOM              ; Prep random number
                 ldy SHIPVIEW            ; Skip if in Front view
-                beq SKIP064             ;
+                beq _2                  ;
 
                 sta PL3COLUMN           ; Randomize PM pixel row and column number...
                 sta PL3ROWNEW           ; ...of Hyperwarp Target Marker
 
-SKIP064         cmp #16                 ; Return in 94% (240:256) of game loops
-                bcs SKIP066             ;
+_2              cmp #16                 ; Return in 94% (240:256) of game loops
+                bcs _XIT1               ;
 
 ;*** Veer off Hyperwarp Target Marker and return *******************************
-SKIP065         lda RANDOM              ; Prep random x-velocity of Hyperwarp Target Marker
+_3              lda RANDOM              ; Prep random x-velocity of Hyperwarp Target Marker
                 ora #$10                ; Velocity value >= 16 <KM/H>
                 and VEERMASK            ; Limit velocity value by mission level
                 sta PL3XVEL             ; PLAYER3 x-velocity := velocity value
@@ -213,11 +219,11 @@ SKIP065         lda RANDOM              ; Prep random x-velocity of Hyperwarp Ta
                 ora #$10                ; Velocity value >= 16 <KM/H>
                 and VEERMASK            ; Limit velocity value by mission level
                 sta PL3YVEL             ; PLAYER3 y-velocity := velocity value
-SKIP066         rts                     ; Return
+_XIT1           rts
 
 ;*** HYPERSPACE PHASE **********************************************************
-SKIP067         tya                     ; Skip if already in HYPERSPACE PHASE
-                bmi SKIP068             ;
+_4              tya                     ; Skip if already in HYPERSPACE PHASE
+                bmi _5                  ;
 
 ;*** HYPERSPACE PHASE (First pass) *********************************************
                 lda #$FF                ; Set hyperwarp state to HYPERSPACE PHASE
@@ -232,14 +238,14 @@ SKIP067         tya                     ; Skip if already in HYPERSPACE PHASE
                 jmp CLEANUPWARP         ; Return via CLEANUPWARP
 
 ;*** HYPERSPACE PHASE (Second and later passes) ********************************
-SKIP068         dec WARPENERGY          ; Decrement energy in chunks of 10 energy units
-                beq SKIP069             ; Skip to DECELERATION PHASE if hyperwarp energy zero
+_5              dec WARPENERGY          ; Decrement energy in chunks of 10 energy units
+                beq _6                  ; Skip to DECELERATION PHASE if hyperwarp energy zero
 
                 ldx #2                  ; ENERGY := ENERGY - 10 and return
-                jmp DECENERGY           ;
+                jmp DecreaseEnergy      ;
 
 ;*** DECELERATION PHASE ********************************************************
-SKIP069         ldy #$19                ; Prep title phrase "HYPERWARP COMPLETE"
+_6              ldy #$19                ; Prep title phrase "HYPERWARP COMPLETE"
                 jsr ENDWARP             ; Stop our starship
 
                 lda WARPARRVCOLUMN      ; Make the arrival hyperwarp marker column number...
@@ -247,7 +253,7 @@ SKIP069         ldy #$19                ; Prep title phrase "HYPERWARP COMPLETE"
                 lda WARPARRVROW         ; Make the arrival hyperwarp marker row number...
                 sta WARPDEPRROW         ; ...the departure hyperwarp marker row number
 
-                lsr A                   ; B3..1 of arrival hyperwarp marker row number...
+                lsr                     ; B3..1 of arrival hyperwarp marker row number...
                 and #$07                ; ...pick vicinity mask
                 tax                     ;
                 lda VICINITYMASKTAB,X   ;
@@ -261,14 +267,14 @@ SKIP069         ldy #$19                ; Prep title phrase "HYPERWARP COMPLETE"
                 sta ISSTARBASESECT      ;
 
                 ldx GCMEMMAP,Y          ; Skip if no starbase in arrival sector
-                bpl SKIP070             ;
+                bpl _7                  ;
 
                 lda #$FF                ; Set starbase-in-sector flag
                 sta ISSTARBASESECT      ;
 
 ;*** Set position vector and velocity vector of starbase ***********************
                 ldy #0                  ;
-LOOP033         lda #0                  ; Loop over all coordinates of starbase
+_next1          lda #0                  ; Loop over all coordinates of starbase
                 sta PL2ZVEL,Y           ; Starbase velocity vector component := 0 <KM/H>
                 lda #1                  ;
                 sta PL2ZPOSSIGN,Y       ; Starbase coordinate sign := + (positive)
@@ -281,7 +287,7 @@ LOOP033         lda #0                  ; Loop over all coordinates of starbase
                 adc #NUMSPCOBJ_ALL      ;
                 tay                     ;
                 cmp #NUMSPCOBJ_ALL*3    ;
-                bcc LOOP033             ; Next starbase coordinate
+                bcc _next1              ; Next starbase coordinate
 
                 lda PL2ZPOSHI           ; Force starbase z-coordinate >= +$71** <KM>
                 ora #$71                ;
@@ -290,7 +296,7 @@ LOOP033         lda #0                  ; Loop over all coordinates of starbase
                 jmp RNDINVXY            ; ...and return
 
 ;*** Flash red alert if Zylon sector entered ***********************************
-SKIP070         beq SKIP071             ; Skip if no Zylon ships in sector
+_7              beq _XIT                ; Skip if no Zylon ships in sector
 
                 lda #255                ; Red alert lifetime := 255 game loops
                 sta REDALERTLIFE        ;
@@ -301,7 +307,9 @@ SKIP070         beq SKIP071             ; Skip if no Zylon ships in sector
                 ldy #$75                ; Set title phrase "RED ALERT"
                 jsr SETTITLE            ;
 
-SKIP071         rts                     ; Return
+_XIT            rts
+                .endproc
+
 
 ;*******************************************************************************
 ;*                                                                             *
@@ -320,10 +328,20 @@ SKIP071         rts                     ; Return
 ; "HYPERWARP ABORTED". Code execution continues into subroutine ENDWARP
 ; ($A987). 
 
-ABORTWARP       ldx #1                  ; ENERGY := ENERGY - 100 after hyperwarp abort
-                jsr DECENERGY           ;
+
+;--------------------------------------
+; Abort hyperwarp
+;--------------------------------------
+ABORTWARP       .proc
+                ldx #1                  ; ENERGY := ENERGY - 100 after hyperwarp abort
+                jsr DecreaseEnergy      ;
 
                 ldy #$17                ; Prep title phrase "HYPERWARP ABORTED"
+
+                .endproc
+
+                ;[fall-through]
+
 
 ;*******************************************************************************
 ;*                                                                             *
@@ -340,9 +358,19 @@ ABORTWARP       ldx #1                  ; ENERGY := ENERGY - 100 after hyperwarp
 ; This subroutine stops our starship's Engines and resets the hyperwarp state.
 ; Code execution continues into subroutine CLEANUPWARP ($A98D).
 
-ENDWARP         lda #0                  ; Stop Engines
+
+;======================================
+; End hyperwarp
+;======================================
+ENDWARP         .proc
+                lda #0                  ; Stop Engines
                 sta NEWVELOCITY         ;
                 sta WARPSTATE           ; Disengage hyperwarp
+
+                .endproc
+
+                ;[fall-through]
+
 
 ;*******************************************************************************
 ;*                                                                             *
@@ -371,7 +399,12 @@ ENDWARP         lda #0                  ; Stop Engines
 ;     $17 -> "HYPERWARP ABORTED"
 ;     $1B -> "HYPERSPACE"
 
-CLEANUPWARP     lda #NUMSPCOBJ_NORM-1   ; Set normal number of space objects
+
+;--------------------------------------
+; Clean up hyperwarp variables
+;--------------------------------------
+CLEANUPWARP     .proc
+                lda #NUMSPCOBJ_NORM-1   ; Set normal number of space objects
                 sta MAXSPCOBJIND        ; (5 PLAYER spc objs + 12 PLAYFIELD spc objs (stars))
 
                 lda #0                  ;
@@ -381,17 +414,20 @@ CLEANUPWARP     lda #NUMSPCOBJ_NORM-1   ; Set normal number of space objects
                 sta PL3SHAPTYPE         ; Clear PLAYER3 shape type
                 sta DRAINENGINES        ; Clear Engines energy drain rate
                 cpy #$17                ; Skip if hyperwarp was aborted
-                beq SKIP072             ;
+                beq _1                  ;
 
                 sta PL0LIFE             ; Zylon ship 0 lifetime := 0 game loops
                 sta PL1LIFE             ; Zylon ship 1 lifetime := 0 game loops
 
-SKIP072         sta PL2LIFE             ; Zylon photon torpedo lifetime := 0 game loops
+_1              sta PL2LIFE             ; Zylon photon torpedo lifetime := 0 game loops
                 sta PL3LIFE             ; Hyperwarp Target Marker lifetime := 0 game loops
                 sta PL4LIFE             ; Photon torpedo 1 lifetime := 0  game loops
                 sta DOCKSTATE           ; DOCKSTATE := NO DOCKING
                 sta TRACKDIGIT          ; Clear index of tracked space object
                 jmp SETTITLE            ; Set title phrase and return
+
+                .endproc
+
 
 ;*******************************************************************************
 ;*                                                                             *
@@ -433,8 +469,14 @@ SKIP072         sta PL2LIFE             ; Zylon photon torpedo lifetime := 0 gam
 L_RANGE         = $68                   ; z-coordinate of star in star trail (16-bit value)
 L_TRAILCNT      = $6E                   ; Star's index in star trail. Used values are: 0..5.
 
-INITTRAIL       dec TRAILDELAY          ; Decrement star trail delay
-                bpl SKIP074             ; Return if delay still counting
+
+;======================================
+; Initialize star trail during STAR
+; TRAIL PHASE of hyperwarp
+;======================================
+INITTRAIL       .proc
+                dec TRAILDELAY          ; Decrement star trail delay
+                bpl _XIT                ; Return if delay still counting
 
                 lda #1                  ; Turn on hyperwarp velocity
                 sta VELOCITYHI          ;
@@ -464,7 +506,7 @@ INITTRAIL       dec TRAILDELAY          ; Decrement star trail delay
                 lda #5                  ; Loop over 5(+1) stars that form the star trail
                 sta L_TRAILCNT          ; Store star counter of star trail
 
-LOOP034         clc                     ; Place stars in z-coordinate intervals of +80 <KM>
+_next1          clc                     ; Place stars in z-coordinate intervals of +80 <KM>
                 lda L_RANGE             ;
                 adc #80                 ;
                 sta L_RANGE             ;
@@ -485,14 +527,15 @@ LOOP034         clc                     ; Place stars in z-coordinate intervals 
                 sta PIXELROWNEW,X       ; ...offscreen value (triggers automatic recalc in...
                 sta PIXELCOLUMN,X       ; ...GAMELOOP's calls to SCREENCOLUMN and SCREENROW)
 
-                jsr COPYPOSXY           ; Copy x and y coordinate from previous star in trail
+                jsr CopyPositionXY           ; Copy x and y coordinate from previous star in trail
 
                 dex                     ; Decrement space object index to next star
                 cpx #NUMSPCOBJ_NORM     ; If index reaches minimum value...
-                bcs SKIP073             ;
+                bcs _1                  ;
                 ldx #NUMSPCOBJ_ALL-1    ; ...wrap-around to maximum space object index
-SKIP073         dec L_TRAILCNT          ;
-                bpl LOOP034             ; Next star of star trail
+_1              dec L_TRAILCNT          ;
+                bpl _next1              ; Next star of star trail
 
                 stx TRAILIND            ; Save space object index of star trail's last star
-SKIP074         rts                     ; Return
+_XIT            rts
+                .endproc

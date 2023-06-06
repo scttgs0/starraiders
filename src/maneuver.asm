@@ -1,3 +1,4 @@
+
 ;*******************************************************************************
 ;*                                                                             *
 ;*                                  MANEUVER                                   *
@@ -331,7 +332,7 @@
 ;
 ;      Finally, the Zylon photon torpedo is launched with a lifetime of 62 game
 ;      loop iterations. Its position vector is copied from the launching Zylon
-;      ship in subroutine COPYPOSVEC ($ACAF). In addition, the Zylon ship is
+;      ship in subroutine CopyPositionVector ($ACAF). In addition, the Zylon ship is
 ;      earmarked for the tracking computer.
 
 L_CTRLDZYLON    = $6A                   ; Index of currently game-controlled Zylon ship.
@@ -340,22 +341,30 @@ L_CTRLDZYLON    = $6A                   ; Index of currently game-controlled Zyl
                                         ;   1 -> Control Zylon ship 1
 NEG             = $80                   ; Negative sign bit for velocity vector component
 
-MANEUVER        lda WARPSTATE           ; Return if in starbase sector or hyperwarp engaged
+
+;======================================
+; Maneuver our starship's and Zylon
+; photon torpedoes and Zylon ships
+;======================================
+MANEUVER        .proc
+                lda WARPSTATE           ; Return if in starbase sector or hyperwarp engaged
                 ora ISSTARBASESECT      ;
-                bne SKIP078             ;
+                bne PROJECTION._XIT     ;
 
 ;*** Update x and y velocity of both our starship's photon torpedoes 0 and 1 ***
                 lda ISTRACKING          ; Skip this if ship's torpedoes not tracking a target
-                beq SKIP080             ;
+                beq _2                  ;
 
                 ldx PLTRACKED           ; Load PLAYER index of tracked target space object
 
                 sec                     ; Prep A := PLAYER row number of target...
                 lda PL0ROWNEW,X         ; ...- PLAYER row number photon torpedo 0
                 sbc PL3ROWNEW           ;
-                bcc SKIP079             ; Skip if target above our starship's photon torpedo
+                bcc _1                  ; Skip if target above our starship's photon torpedo
+
                 lda #0                  ; Prep A := 0
-SKIP079         jsr HOMINGVEL           ; Get y-velocity for homing photon torpedo 0 and 1
+_1              jsr HOMINGVEL           ; Get y-velocity for homing photon torpedo 0 and 1
+
                 sta PL3YVEL             ; Store y-velocity photon torpedo 0
                 sta PL4YVEL             ; Store y-velocity photon torpedo 1
 
@@ -372,73 +381,78 @@ SKIP079         jsr HOMINGVEL           ; Get y-velocity for homing photon torpe
                 sta PL4XVEL             ; Store x-velocity of photon torpedo 1
 
 ;*** Make Zylon ships follow rotation of our starship **************************
-SKIP080         ldx #3                  ; Loop over x and y velocity indices of both Zylons
-LOOP036         dec ZYLONTIMX0,X        ; Decrement Zylon timer
-                bpl SKIP085             ; Next timer if this one still counting down
+_2              ldx #3                  ; Loop over x and y velocity indices of both Zylons
+_next1          dec ZYLONTIMX0,X        ; Decrement Zylon timer
+                bpl _7                  ; Next timer if this one still counting down
 
                 txa                     ; Prep joystick (x or y) value in -1, 0, +1
-                lsr A                   ;
+                lsr                     ;
                 tay                     ;
                 lda JOYSTICKX,Y         ;
 
                 ldy SHIPVIEW            ; Skip if in Front view
-                beq SKIP081             ;
+                beq _3                  ;
 
                 eor #$FF                ; Invert joystick value (when in Aft view)
                 clc                     ; (two's-complement)
                 adc #1                  ;
 
-SKIP081         clc                     ; Add joystick value to Zylon velocity index
+_3              clc                     ; Add joystick value to Zylon velocity index
                 adc ZYLONVELINDX0,X     ;
-                bpl SKIP082             ;
+                bpl _4                  ;
+
                 lda #0                  ;
-SKIP082         cmp #16                 ; Limit new Zylon velocity index to 0..15 ...
-                bcc SKIP083             ;
+_4              cmp #16                 ; Limit new Zylon velocity index to 0..15 ...
+                bcc _5                  ;
+
                 lda #15                 ;
-SKIP083         sta ZYLONVELINDX0,X     ; ...and store new Zylon velocity index
+_5              sta ZYLONVELINDX0,X     ; ...and store new Zylon velocity index
 
                 cmp #8                  ; Calc new Zylon timer value in 0, 2, ..., 14
-                bcc SKIP084             ;
+                bcc _6                  ;
+
                 eor #$0F                ;
-SKIP084         asl A                   ;
+_6              asl                     ;
                 sta ZYLONTIMX0,X        ; ...and store new Zylon timer value
 
-SKIP085         dex                     ;
-                bpl LOOP036             ; Next Zylon timer
+_7              dex                     ;
+                bpl _next1              ; Next Zylon timer
 
 ;*** Update x and y velocity of single Zylon photon torpedo ********************
                 lda PL2SHAPTYPE         ; Skip if PLAYER2 not PHOTON TORPEDO (shape type 0)
-                bne SKIP088             ;
+                bne _10                 ;
 
                 ldy MISSIONLEVEL        ; Depending on mission level...
                 lda ZYLONHOMVELTAB,Y    ; ...pick (initially negative) Zylon torpedo velocity
 
                 ldx PL2YPOSHI           ; If photon torpedo in upper screen half (y >= 0)...
-                bpl SKIP086             ; ...don't toggle velocity sign -> torpedo goes down
+                bpl _8                  ; ...don't toggle velocity sign -> torpedo goes down
+
                 and #$7F                ; ...toggle velocity sign       -> torpedo goes up
-SKIP086         sta PL2YVEL             ; Store new y-velocity of Zylon photon torpedo
+_8              sta PL2YVEL             ; Store new y-velocity of Zylon photon torpedo
 
                 ora #NEG                ; Restore negative sign bit of velocity
 
                 ldx PL2XPOSHI           ; If photon torpedo in right screen half (x >= 0)...
-                bpl SKIP087             ; ...don't toggle velocity sign -> torpedo goes left
+                bpl _9                  ; ...don't toggle velocity sign -> torpedo goes left
+
                 and #$7F                ; ...toggle velocity sign       -> torpedo goes right
-SKIP087         sta PL2XVEL             ; Store new x-velocity of Zylon photon torpedo
+_9              sta PL2XVEL             ; Store new x-velocity of Zylon photon torpedo
 
 ;*** Create new meteor? ********************************************************
-SKIP088         lda COUNT256            ; Attempt meteor creation in 7 out of 8 game loops
+_10             lda COUNT256            ; Attempt meteor creation in 7 out of 8 game loops
                 and #$03                ;
-                beq SKIP092             ;
+                beq _12                 ;
 
-SKIP089         lda PL2SHAPOFF          ; If PLAYER2 shape is initial try to create a meteor
-                beq SKIP090             ;
+_next2          lda PL2SHAPOFF          ; If PLAYER2 shape is initial try to create a meteor
+                beq _11                 ;
 
                 lda PL2LIFE             ; Return if PLAYER2 alive
-                bne SKIP091             ;
+                bne _XIT1               ;
 
-SKIP090         lda RANDOM              ; Return in 98% (252:256) (do not create meteor)
+_11             lda RANDOM              ; Return in 98% (252:256) (do not create meteor)
                 cmp #4                  ;
-                bcs SKIP091             ;
+                bcs _XIT1               ;
 
 ;*** Create new meteor! ********************************************************
                 lda #SHAP_METEOR        ; PLAYER2 is METEOR (shape type 6)
@@ -453,24 +467,24 @@ SKIP090         lda RANDOM              ; Return in 98% (252:256) (do not create
                 sta PL2COLUMN           ; z-velocity := -8 <KM/H>
                 sta PL2XVEL             ;
                 sta PL2YVEL             ; PLAYER2 column number := 0 (offscreen)
-SKIP091         rts                     ; Return
+_XIT1           rts
 
 ;*** Toggle Zylon ship control *************************************************
-SKIP092         lda CTRLDZYLON          ; Toggle control to the other Zylon ship
+_12             lda CTRLDZYLON          ; Toggle control to the other Zylon ship
                 eor #$01                ;
                 sta CTRLDZYLON          ;
 
 ;*** Create a new Zylon ship? **************************************************
                 tax                     ; Save index of controlled Zylon ship
                 lda PL0LIFE,X           ; Skip creating Zylon ship if its PLAYER still alive
-                bne SKIP094             ;
+                bne _14                 ;
 
                 lda PL0LIFE             ; If both Zylon ships are not alive...
                 ora PL1LIFE             ;
                 and #$01                ;
                 ldy CURRSECTOR          ; ...and this an empty sector...
                 cmp GCMEMMAP,Y          ;
-                bcs SKIP089             ; ...attempt to create meteor and return
+                bcs _next2              ; ...attempt to create meteor and return
 
 ;*** Create a new Zylon ship! **************************************************
                 lda #255                ; Zylon ship lifetime := 255 game loops (infinite)
@@ -483,9 +497,10 @@ SKIP092         lda CTRLDZYLON          ; Toggle control to the other Zylon ship
                 sta PL0SHAPTYPE,X       ;
 
                 lda MISSIONLEVEL        ; Init Zylon's flight pattern (0 if NOVICE mission)
-                beq SKIP093             ;
+                beq _13                 ;
+
                 lda ZYLONFLPATTAB,Y     ;
-SKIP093         sta ZYLONFLPAT0,X       ;
+_13             sta ZYLONFLPAT0,X       ;
 
                 lda #1                  ; Zylon ship's milestone timer := 1 game loop
                 sta MILESTTIM0,X        ;
@@ -501,25 +516,25 @@ SKIP093         sta ZYLONFLPAT0,X       ;
                 jsr RNDINVXY            ; Randomly invert x and y coordinate of pos vector
 
 ;*** Set current flight pattern to attack flight pattern? **********************
-SKIP094         lda ZPOSHI,X            ; Skip if Zylon too distant (z >= +$20** <KM>)
+_14             lda ZPOSHI,X            ; Skip if Zylon too distant (z >= +$20** <KM>)
                 cmp #$20                ;
-                bcs SKIP096             ;
+                bcs _16                 ;
 
                 lda ZPOSSIGN,X          ; Set attack flight pattern if Zylon is behind
-                beq SKIP095             ;
+                beq _15                 ;
 
                 lda PL0SHAPOFF,X        ; Skip if Zylon shape initial
-                beq SKIP096             ;
+                beq _16                 ;
 
                 cmp #$29                ; Skip if Zylon shape is Long-Range Scan blip
-                beq SKIP096             ;
+                beq _16                 ;
 
-SKIP095         lda #0                  ; Set attack flight pattern
+_15             lda #0                  ; Set attack flight pattern
                 sta ZYLONFLPAT0,X       ;
 
 ;*** Update back-attack flag and milestone velocity indices ********************
-SKIP096         dec MILESTTIM0,X        ; Skip if milestone timer still counting down
-                bpl SKIP099             ;
+_16             dec MILESTTIM0,X        ; Skip if milestone timer still counting down
+                bpl _19                 ;
 
                 lda #120                ; Milestone timer := 120 game loops
                 sta MILESTTIM0,X        ;
@@ -527,50 +542,53 @@ SKIP096         dec MILESTTIM0,X        ; Skip if milestone timer still counting
                 lda MISSIONLEVEL        ; Back-attack flag := 1 in 19% (48:256) of...
                 ldy RANDOM              ; ...WARRIOR or COMMANDER missions
                 cpy #48                 ; ...              := 0 otherwise
-                bcc SKIP097             ;
-                lsr A                   ;
-SKIP097         lsr A                   ;
+                bcc _17                 ;
+
+                lsr                     ;
+_17             lsr                     ;
                 sta ISBACKATTACK0,X     ;
 
                                         ; Loop over all 3 milestone velocity indices
                 lda ZYLONFLPAT0,X       ; Set new milestone velocity index:
-LOOP037         bit RANDOM              ; If Zylon flight pattern is...
-                bpl SKIP098             ; ...0 -> milestone velocity index := either 0 or 15
+_next3          bit RANDOM              ; If Zylon flight pattern is...
+                bpl _18                 ; ...0 -> milestone velocity index := either 0 or 15
+
                 eor #$0F                ; ...1 -> milestone velocity index := either 1 or 14
-SKIP098         sta MILESTVELINDZ0,X    ; ...4 -> milestone velocity index := either 4 or 11
+_18             sta MILESTVELINDZ0,X    ; ...4 -> milestone velocity index := either 4 or 11
                 inx                     ;
                 inx                     ;
                 cpx #6                  ;
-                bcc LOOP037             ; Next Zylon milestone velocity index
+                bcc _next3              ; Next Zylon milestone velocity index
 
 ;*** Update milestone velocity indices in attack flight pattern ****************
                 ldx CTRLDZYLON          ; Reload index of controlled Zylon ship
 
-SKIP099         lda ZYLONFLPAT0,X       ; Skip if not in attack flight pattern
-                bne SKIP105             ;
+_19             lda ZYLONFLPAT0,X       ; Skip if not in attack flight pattern
+                bne _25                 ;
 
                 ldy CTRLDZYLON          ; Reload index of controlled Zylon ship
 
                                         ; Loop over all 3 milestone velocity indices
-LOOP038         cpy #$31                ; Skip to handle x and y velocity index
-                bcs SKIP101             ;
+_next4          cpy #$31                ; Skip to handle x and y velocity index
+                bcs _21                 ;
                                         ; SUMMARY:
                 lda ISBACKATTACK0,Y     ; Handle z-velocity index:
-                lsr A                   ;
+                lsr                     ;
                 lda ZPOSHI,Y            ; If Zylon attacks from front...
-                bcs SKIP100             ; z <  $0A00 <KM> -> mil vel index := 0  (+62 <KM/H>)
+                bcs _20                 ; z <  $0A00 <KM> -> mil vel index := 0  (+62 <KM/H>)
                 cmp #$0A                ; z >= $0A00 <KM> -> mil vel index := 15 (-62 <KM/H>)
-                bcc SKIP103             ;
-                bcs SKIP101             ; If Zylon attacks from back...
-SKIP100         cmp #$F5                ; z >= $F500 <KM> -> mil vel index := 15 (-62 <KM/H>)
-                bcs SKIP102             ; z <  $F500 <KM> -> mil vel index := 0  (+62 <KM/H>)
+                bcc _23                 ;
+                bcs _21                 ; If Zylon attacks from back...
+_20             cmp #$F5                ; z >= $F500 <KM> -> mil vel index := 15 (-62 <KM/H>)
+                bcs _22                 ; z <  $F500 <KM> -> mil vel index := 0  (+62 <KM/H>)
 
-SKIP101         lda ZPOSSIGN,Y          ; Handle x and y velocity index:
-                lsr A                   ;
-SKIP102         lda #15                 ; x >= 0 <KM> -> mil vel index := 15 (-62 <KM/H>)
-                bcs SKIP104             ; x <  0 <KM> -> mil vel index := 0  (+62 <KM/H>)
-SKIP103         lda #0                  ; y >= 0 <KM> -> mil vel index := 15 (-62 <KM/H>)
-SKIP104         sta MILESTVELINDZ0,X    ; y <  0 <KM> -> mil vel index := 0  (+62 <KM/H>)
+_21             lda ZPOSSIGN,Y          ; Handle x and y velocity index:
+                lsr                     ;
+_22             lda #15                 ; x >= 0 <KM> -> mil vel index := 15 (-62 <KM/H>)
+                bcs _24                 ; x <  0 <KM> -> mil vel index := 0  (+62 <KM/H>)
+
+_23             lda #0                  ; y >= 0 <KM> -> mil vel index := 15 (-62 <KM/H>)
+_24             sta MILESTVELINDZ0,X    ; y <  0 <KM> -> mil vel index := 0  (+62 <KM/H>)
 
                 clc                     ; Adjust position vector component index
                 tya                     ;
@@ -580,22 +598,24 @@ SKIP104         sta MILESTVELINDZ0,X    ; y <  0 <KM> -> mil vel index := 0  (+6
                 inx                     ;
                 inx                     ;
                 cpx #6                  ;
-                bcc LOOP038             ; Next milestone velocity index
+                bcc _next4              ; Next milestone velocity index
 
 ;*** Acceleration: Change Zylon velocity index toward milestone velocity index *
                 ldx CTRLDZYLON          ; Reload index of controlled Zylon ship
-SKIP105         ldy CTRLDZYLON          ; Reload index of controlled Zylon ship
+_25             ldy CTRLDZYLON          ; Reload index of controlled Zylon ship
 
                                         ; Loop over all 3 milestone velocity indices
-LOOP039         lda ZYLONVELINDZ0,X     ; Compare Zylon velocity index with milestone index
+_next5          lda ZYLONVELINDZ0,X     ; Compare Zylon velocity index with milestone index
                 cmp MILESTVELINDZ0,X    ;
-                beq SKIP107             ; Skip if equal
-                bcs SKIP106             ;
-                inc ZYLONVELINDZ0,X     ; Increm. Zylon velocity index if < milestone index
-                bcc SKIP107             ;
-SKIP106         dec ZYLONVELINDZ0,X     ; Decrem. Zylon velocity index if >= milestone index
+                beq _27                 ; Skip if equal
+                bcs _26                 ;
 
-SKIP107         stx L_CTRLDZYLON        ; Save index of controlled Zylon ship
+                inc ZYLONVELINDZ0,X     ; Increm. Zylon velocity index if < milestone index
+                bcc _27                 ;
+
+_26             dec ZYLONVELINDZ0,X     ; Decrem. Zylon velocity index if >= milestone index
+
+_27             stx L_CTRLDZYLON        ; Save index of controlled Zylon ship
                 tax                     ;
                 lda ZYLONVELTAB,X       ; Pick new velocity value by Zylon velocity index
                 ldx L_CTRLDZYLON        ; Reload index of controlled Zylon ship
@@ -609,7 +629,7 @@ SKIP107         stx L_CTRLDZYLON        ; Save index of controlled Zylon ship
                 inx                     ;
                 inx                     ;
                 cpx #6                  ;
-                bcc LOOP039             ; Next milestone velocity index
+                bcc _next5              ; Next milestone velocity index
 
 ;*** Launch Zylon photon torpedo? **********************************************
 
@@ -617,40 +637,40 @@ SKIP107         stx L_CTRLDZYLON        ; Save index of controlled Zylon ship
                 ldx CTRLDZYLON          ; Reload index of controlled Zylon ship
 
                 lda PL2SHAPTYPE         ; Skip if PLAYER2 not PHOTON TORPEDO (shape type 0)
-                bne SKIP109             ;
+                bne _28                 ;
 
                 lda PL2LIFE             ; Return if Zylon photon torpedo still alive
-                bne SKIP108             ;
+                bne _XIT2               ;
 
                 lda TORPEDODELAY        ; Count down Zylon photon torpedo delay timer...
-                beq SKIP109             ; ...before launching next Zylon photon torpedo
+                beq _28                 ; ...before launching next Zylon photon torpedo
                 dec TORPEDODELAY        ;
-SKIP108         rts                     ; Return
+_XIT2           rts
 
 ;*** Check y-coordinate of Zylon ship ******************************************
-SKIP109         clc                     ; Return if Zylon ship's y-coordinate not...
+_28             clc                     ; Return if Zylon ship's y-coordinate not...
                 lda YPOSHI,X            ; ...in -768..+767 (-$(0300)..+$2FF) <KM>.
                 adc #2                  ;
                 cmp #5                  ;
-                bcs SKIP108             ;
+                bcs _XIT2               ;
 
 ;*** Set Zylon photon torpedo's z-velocity *************************************
                 ldy #NEG|80             ; Prep Zylon torpedo's z-velocity := -80 <KM/H>
 
                 lda ZPOSSIGN,X          ; Prep Zylon ship's sign of z-coordinate
-                lsr A                   ;
+                lsr                     ;
                 lda ZPOSHI,X            ; Prep Zylon ship's z-coordinate
-                bcs SKIP110             ; Skip if Zylon ship in front...
+                bcs _29                 ; Skip if Zylon ship in front...
                 eor #$FF                ; ...else invert loaded Zylon ship's z-coordinate
 
                 ldy MISSIONLEVEL        ; Return (no torpedo from back) if NOVICE mission
-                beq SKIP108             ;
+                beq _XIT2               ;
 
                 ldy #80                 ; Preload Zylon torpedo's z-velocity := +80 <KM/H>
 
 ;*** Is Zylon ship in range? ***************************************************
-SKIP110         cmp #$20                ; Return if Zylon ship too far...
-                bcs SKIP108             ; ... (ABS(z-coordinate) > 8192 ($20**) <KM>)
+_29             cmp #$20                ; Return if Zylon ship too far...
+                bcs _XIT2               ; ... (ABS(z-coordinate) > 8192 ($20**) <KM>)
 
                 sty PL2ZVEL             ; Store Zylon photon torpedo's z-velocity
 
@@ -665,4 +685,6 @@ SKIP110         cmp #$20                ; Return if Zylon ship too far...
                 ldx #2                  ; Prep source index for position vector copy
                 ldy CTRLDZYLON          ; Prep destination index for position vector copy
                 sty ZYLONATTACKER       ; Save Zylon ship index for tracking computer
-                jmp COPYPOSVEC          ; Copy position vector from Zylon ship to its torpedo
+                jmp CopyPositionVector  ; Copy position vector from Zylon ship to its torpedo
+
+                .endproc

@@ -1,3 +1,4 @@
+
 ;*******************************************************************************
 ;*                                                                             *
 ;*                                  GAMEOVER                                   *
@@ -90,7 +91,13 @@
 ;     $23 -> "SHIP DESTROYED BY ZYLON FIRE"
 
 ;*** Game over (Mission failed) ************************************************
-GAMEOVER        lda #0                  ;
+
+
+;======================================
+; End of a failed mission
+;======================================
+GAMEOVER        .proc
+                lda #0                  ;
                 sta PL3LIFE             ; PLAYER3 lifetime := 0 game loops
                 sta BEEPPRIORITY        ; Mute beeper
                 sta TITLEPHR            ; Clear title line
@@ -102,8 +109,19 @@ GAMEOVER        lda #0                  ;
                 sta WARPSTATE           ; Disengage hyperwarp
                 sta VELOCITYHI          ; Turn off hyperwarp velocity
 
+                .endproc
+
+                ;[fall-through]
+
+
 ;*** Game over (Mission successful) ********************************************
-GAMEOVER2       lda #$FF                ; Enter demo mode
+
+
+;======================================
+; End of a successful mission
+;======================================
+GAMEOVER2       .proc
+                lda #$FF                ; Enter demo mode
                 sta ISDEMOMODE          ;
 
                 sty NEWTITLEPHR         ; Enqueue title phrase
@@ -122,33 +140,35 @@ GAMEOVER2       lda #$FF                ; Enter demo mode
                 sta JOYSTICKX           ; Clear horizontal joystick delta
 
                 adc SCORE+1             ;
-                bmi SKIP165             ; Return if total score < 0 (= total score of 0)
+                bmi _XIT                ; Return if total score < 0 (= total score of 0)
 
 ;*** Calculate scored rank *****************************************************
-                lsr A                   ;
+                lsr                     ;
                 txa                     ;
                 ror A                   ;
-                lsr A                   ;
-                lsr A                   ;
-                lsr A                   ; Use bits B8..4 of total score as rank index
+                lsr                     ;
+                lsr                     ;
+                lsr                     ; Use bits B8..4 of total score as rank index
                 cmp #19                 ; Limit scored rank index to 0..18
-                bcc SKIP162             ;
+                bcc _1                  ;
+
                 lda #18                 ;
                 ldx #15                 ; Prep class index of 15
-SKIP162         sta SCOREDRANKIND       ; Store scored rank index
+_1              sta SCOREDRANKIND       ; Store scored rank index
 
 ;*** Calculate scored class ****************************************************
                 tay                     ;
                 txa                     ;
                 cpy #0                  ;
-                beq SKIP164             ;
+                beq _3                  ;
                 cpy #11                 ;
-                bcc SKIP163             ;
+                bcc _2                  ;
                 cpy #15                 ;
-                bcc SKIP164             ;
-SKIP163         lsr A                   ;
+                bcc _3                  ;
+_2              lsr                     ;
                 eor #$08                ;
-SKIP164         and #$0F                ;
+_3              and #$0F                ;
                 sta SCOREDCLASSIND      ; Store scored class index, is 0..15
 
-SKIP165         rts                     ; Return
+_XIT            rts
+                .endproc

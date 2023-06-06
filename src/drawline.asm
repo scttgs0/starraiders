@@ -1,6 +1,7 @@
+
 ;*******************************************************************************
 ;*                                                                             *
-;*                                  DRAWLINES                                  *
+;*                                  DrawLines                                  *
 ;*                                                                             *
 ;*                     Draw horizontal and vertical lines                      *
 ;*                                                                             *
@@ -14,8 +15,8 @@
 ; DRAWLINESTAB ($BAF9). This table consists of a list of 3-byte elements,
 ; terminated by an end marker byte ($FE). Each such element defines a single
 ; horizontal or vertical line, and is passed via memory addresses DIRLEN ($A4),
-; PENROW ($A5), and PENCOLUMN ($A6) to subroutine DRAWLINE ($A782), which
-; executes the actual drawing. See subroutine DRAWLINE ($A782) and table
+; PENROW ($A5), and PENCOLUMN ($A6) to subroutine DrawLine ($A782), which
+; executes the actual drawing. See subroutine DrawLine ($A782) and table
 ; DRAWLINESTAB ($BAF9) for a description of the 3-byte elements. 
 ;
 ; With every call of this subroutine the blip cycle counter is initialized to
@@ -30,27 +31,45 @@
 ;     $2A -> Draw Aft view cross hairs (Aft view)
 ;     $31 -> Draw our starship's shape (Long-Range Scan view)
 
-LOOP028         sta DIRLEN,Y            ; Store byte of 3-byte element
+
+;--------------------------------------
+; Process a single line
+;--------------------------------------
+ProcessLine     .proc
+                sta DIRLEN,Y            ; Store byte of 3-byte element
                 inx                     ;
                 dey                     ;
-                bpl SKIP048             ; Next byte of 3-byte element until 3 bytes copied
-                jsr DRAWLINE            ; Draw line on PLAYFIELD
+                bpl DrawLines._ENTRY1   ; Next byte of 3-byte element until 3 bytes copied
 
-DRAWLINES       lda #5                  ; Init blip cycle to DELAY phase...
+                jsr DrawLine            ; Draw line on PLAYFIELD
+
+                .endproc
+
+                ;[fall-through]
+
+
+;======================================
+; Draw horizontal and vertical lines
+;======================================
+DrawLines       .proc
+                lda #5                  ; Init blip cycle to DELAY phase...
                 sta BLIPCYCLECNT        ; ...delays drawing each row
 
                 bit GCSTATCOM           ; Return if Attack Computer destroyed
-                bvs SKIP049             ;
+                bvs _XIT                ;
 
                 ldy #2                  ;
-SKIP048         lda DRAWLINESTAB,X      ; Load byte of 3-byte element
+_ENTRY1         lda DRAWLINESTAB,X      ; Load byte of 3-byte element
                 cmp #$FE                ; Loop until end marker byte ($FE) encountered
-                bne LOOP028             ;
-SKIP049         rts                     ; Return
+                bne ProcessLine         ;
+
+_XIT            rts
+                .endproc
+
 
 ;*******************************************************************************
 ;*                                                                             *
-;*                                  DRAWLINE                                   *
+;*                                  DrawLine                                   *
 ;*                                                                             *
 ;*                  Draw a single horizontal or vertical line                  *
 ;*                                                                             *
@@ -62,11 +81,11 @@ SKIP049         rts                     ; Return
 ;
 ; There are two entries to this subroutine:
 ;
-; (1)  DRAWLINE ($A782) is entered from subroutine DRAWLINES ($A76F) to draw a
+; (1)  DrawLine ($A782) is entered from subroutine DrawLines ($A76F) to draw a
 ;      line in COLOR1.
 ;
-; (2)  DRAWLINE2 ($A784) is entered from subroutine UPDATTCOMP ($A7BF) to draw
-;      the blip in COLOR2 in the Attack Computer Display.
+; (2)  DrawLine._ENTRY1 ($A784) is entered from subroutine UPDATTCOMP ($A7BF)
+;      to draw the blip in COLOR2 in the Attack Computer Display.
 ;
 ; The position, direction, and length of the line is defined by three bytes
 ; passed in memory addresses DIRLEN ($A4), PENROW ($A5), and PENCOLUMN ($A6). 
@@ -108,22 +127,28 @@ L_PIXELBYTEOFF  = $6A                   ; Within-row-offset to byte with pixel i
 L_BITPAT        = $6B                   ; 1-byte bit pattern for 4 pixels of same color
 L_DIRSAV        = $6E                   ; Saves DIRLEN
 
-DRAWLINE        lda #$55                ; Copy 1-byte bit pattern for 4 pixels of COLOR1
-DRAWLINE2       sta L_BITPAT            ;
+
+;======================================
+; Draw a single horizontal or vertical
+; line
+;======================================
+DrawLine        .proc
+                lda #$55                ; Copy 1-byte bit pattern for 4 pixels of COLOR1
+_ENTRY1         sta L_BITPAT            ;
                 lda DIRLEN              ; Copy direction (and length) of line
                 sta L_DIRSAV            ;
                 and #$7F                ; Strip direction bit
                 sta DIRLEN              ; Store length of line
 
-LOOP029         ldy PENROW              ; Loop over length of line to be drawn
+_next1          ldy PENROW              ; Loop over length of line to be drawn
                 lda PFMEMROWLO,Y        ; Point MEMPTR to start of pen's pixel row...
                 sta MEMPTR              ; ...in PLAYFIELD memory
                 lda PFMEMROWHI,Y        ;
                 sta MEMPTR+1            ;
 
                 lda PENCOLUMN           ; Calc and store pen's byte-within-row offset
-                lsr A                   ;
-                lsr A                   ;
+                lsr                     ;
+                lsr                     ;
                 sta L_PIXELBYTEOFF      ;
 
                 lda PENCOLUMN           ; Calc pixel-within-byte index
@@ -137,11 +162,15 @@ LOOP029         ldy PENROW              ; Loop over length of line to be drawn
                 sta (MEMPTR),Y          ; ...and store it back in PLAYFIELD memory
 
                 bit L_DIRSAV            ; Check direction bit B7
-                bpl SKIP050             ;
-                inc PENROW              ; If B7 = 1 -> Increment pen's pixel row number
-                bne SKIP051             ;
-SKIP050         inc PENCOLUMN           ; If B7 = 0 -> Increment pen's pixel column number
+                bpl _1                  ;
 
-SKIP051         dec DIRLEN              ;
-                bne LOOP029             ; Next pixel of line
-                rts                     ; Return
+                inc PENROW              ; If B7 = 1 -> Increment pen's pixel row number
+                bne _2                  ;
+
+_1              inc PENCOLUMN           ; If B7 = 0 -> Increment pen's pixel column number
+
+_2              dec DIRLEN              ;
+                bne _next1              ; Next pixel of line
+
+                rts
+                .endproc

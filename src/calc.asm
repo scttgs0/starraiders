@@ -1,3 +1,4 @@
+
 ; *******************************************************************************
 ; *                                                                             *
 ; *                                   ROTATE                                    *
@@ -211,12 +212,18 @@ L_TERM3LO       = $6A                   ; TERM3 (high byte), where TERM3 := TERM
 L_TERM3HI       = $6B                   ; TERM3 (low byte),  where TERM3 := TERM2 / 64
 L_TERM3SIGN     = $6C                   ; TERM3 (sign),      where TERM3 := TERM2 / 64
 
-ROTATE          lda ZPOSSIGN,X          ;
-                eor #$01                ;
-                beq SKIP224             ; Skip if sign of TERM2 is positive
-                lda #$FF                ;
 
-SKIP224         sta L_TERM3HI           ; If TERM2 pos. -> TERM3 := $0000xx (= TERM2 / 256)
+;======================================
+; Rotate position vector component
+; (coordinate) by fixed angle
+;======================================
+ROTATE          .proc
+                lda ZPOSSIGN,X          ;
+                eor #$01                ;
+                beq _1                  ; Skip if sign of TERM2 is positive
+
+                lda #$FF                ;
+_1              sta L_TERM3HI           ; If TERM2 pos. -> TERM3 := $0000xx (= TERM2 / 256)
                 sta L_TERM3SIGN         ; If TERM2 neg. -> TERM3 := $FFFFxx (= TERM2 / 256)
                 lda ZPOSHI,X            ; where xx := TERM2 (high byte)
                 sta L_TERM3LO           ;
@@ -225,17 +232,17 @@ SKIP224         sta L_TERM3HI           ; If TERM2 pos. -> TERM3 := $0000xx (= T
                 ora #$BF                ; (?) arithmetic? Provides two least significant
                 eor ZPOSLO,X            ; (?) bits B1..0 in TERM3.
 
-                asl A                   ; TERM3 := TERM3 * 4 (= TERM2 / 256 * 4 = TERM2 / 64)
+                asl                     ; TERM3 := TERM3 * 4 (= TERM2 / 256 * 4 = TERM2 / 64)
                 rol L_TERM3LO           ;
                 rol L_TERM3HI           ;
-                asl A                   ;
+                asl                     ;
                 rol L_TERM3LO           ;
                 rol L_TERM3HI           ;
 
                 lda JOYSTICKDELTA       ; Toggle SIGN for next call of ROTATE
                 eor #$FF                ;
                 sta JOYSTICKDELTA       ;
-                bmi SKIP225             ; If SIGN negative then subtract, else add TERM3
+                bmi _2                  ; If SIGN negative then subtract, else add TERM3
 
 ;*** Addition ******************************************************************
                 clc                     ; TERM1 := TERM1 + TERM3
@@ -253,7 +260,7 @@ SKIP224         sta L_TERM3HI           ; If TERM2 pos. -> TERM3 := $0000xx (= T
                 rts                     ;
 
 ;*** Subtraction ***************************************************************
-SKIP225         sec                     ; TERM1 := TERM1 - TERM3
+_2              sec                     ; TERM1 := TERM1 - TERM3
                 lda ZPOSLO,Y            ; (24-bit subtraction)
                 sbc L_TERM3LO           ;
                 sta ZPOSLO,Y            ;
@@ -266,6 +273,8 @@ SKIP225         sec                     ; TERM1 := TERM1 - TERM3
                 sbc L_TERM3SIGN         ;
                 sta ZPOSSIGN,Y          ;
                 rts                     ;
+                .endproc
+
 
 ;*******************************************************************************
 ;*                                                                             *
@@ -309,28 +318,36 @@ SKIP225         sec                     ; TERM1 := TERM1 - TERM3
 
 L_PIXELCOLUMN   = $6D                   ; Saves relative pixel column number
 
-SCREENCOLUMN    cmp #80                 ; If pixel is offscreen (A > 79)...
-                bcs SKIP233             ; ...return via initializing a new position vector
+
+;======================================
+; Calculate pixel column number from
+; centered pixel column number
+;======================================
+SCREENCOLUMN    .proc
+                cmp #80                 ; If pixel is offscreen (A > 79)...
+                bcs SCREENROW._ENTRY1   ; ...return via initializing a new position vector
 
                 sta L_PIXELCOLUMN       ; Save relative pixel column number
                 lda #80                 ; If PLAYFIELD space object -> A := CENTERCOL = 80
                 cpx #NUMSPCOBJ_PL       ; If PLAYER space object    -> A := CENTERCOL = 125
-                bcs SKIP226             ;
-                lda #125                ;
+                bcs _1                  ;
 
-SKIP226         ldy XPOSSIGN,X          ; Skip if x-coordinate positive
-                bne SKIP227             ;
+                lda #125                ;
+_1              ldy XPOSSIGN,X          ; Skip if x-coordinate positive
+                bne _2                  ;
 
                 sec                     ; Pixel in left screen half (x-coordinate negative)
                 inc L_PIXELCOLUMN       ;
                 sbc L_PIXELCOLUMN       ;
                 sta PIXELCOLUMN,X       ; Pixel column := CENTERCOL - (rel. pixel column + 1)
-                rts                     ; Return
+                rts
 
-SKIP227         clc                     ; Pixel in right screen half (x-coordinate positive)
+_2              clc                     ; Pixel in right screen half (x-coordinate positive)
                 adc L_PIXELCOLUMN       ;
                 sta PIXELCOLUMN,X       ; Pixel column := CENTERCOL + relative pixel column
-                rts                     ; Return
+                rts
+                .endproc
+
 
 ;*******************************************************************************
 ;*                                                                             *
@@ -381,49 +398,57 @@ SKIP227         clc                     ; Pixel in right screen half (x-coordina
 
 L_PIXELROW      = $6D                   ; Saves relative pixel row number
 
-SCREENROW       cmp #50                 ; If pixel is offscreen (A > 49)...
-                bcs SKIP233             ; ...return via initializing a new position vector
+
+;======================================
+; Calculate pixel row number from
+; centered pixel row number
+;======================================
+SCREENROW       .proc
+                cmp #50                 ; If pixel is offscreen (A > 49)...
+                bcs _ENTRY1             ; ...return via initializing a new position vector
 
                 sta L_PIXELROW          ; Save relative pixel row number
                 lda #50                 ; If PLAYFIELD space object -> A := CENTERROW = 50
                 cpx #NUMSPCOBJ_PL       ;
-                bcs SKIP228             ;
+                bcs _1                  ;
+
                 asl L_PIXELROW          ; If PLAYER space object -> Double pixel row number
                 lda #122                ; If PLAYER space object ->    A := CENTERROW = 122
-
-SKIP228         bit SHIPVIEW            ; Skip if not in Long-Range Scan view
-                bvc SKIP230             ;
+_1              bit SHIPVIEW            ; Skip if not in Long-Range Scan view
+                bvc _3                  ;
 
                 bit GCSTATLRS           ; Skip if Long-Range Scan OK
-                bpl SKIP229             ;
+                bpl _2                  ;
 
                 bit RANDOM              ; Long-Range Scan damaged...
-                bvc SKIP231             ; ...branch randomly to pixel row number calculation
-                bvs SKIP232             ; ...(mirror effect)
+                bvc _4                  ; ...branch randomly to pixel row number calculation
+                bvs _5                  ; ...(mirror effect)
 
-SKIP229         ldy ZPOSSIGN,X          ;
-                bne SKIP231             ; Skip if z-coordinate pos. (Long-Range Scan view)
-                beq SKIP232             ; Skip if z-coordinate neg. (Long-Range Scan view)
+_2              ldy ZPOSSIGN,X          ;
+                bne _4                  ; Skip if z-coordinate pos. (Long-Range Scan view)
+                beq _5                  ; Skip if z-coordinate neg. (Long-Range Scan view)
 
-SKIP230         ldy YPOSSIGN,X          ;
-                beq SKIP232             ; Skip if y-coordinate neg. (Front or Aft view)
+_3              ldy YPOSSIGN,X          ;
+                beq _5                  ; Skip if y-coordinate neg. (Front or Aft view)
 
-SKIP231         sec                     ; Pixel in upper screen half (z or y coordinate pos.)
+_4              sec                     ; Pixel in upper screen half (z or y coordinate pos.)
                 inc L_PIXELROW          ;
                 sbc L_PIXELROW          ;
                 sta PIXELROWNEW,X       ; Pixel row  := CENTERROW - (rel. pixel row + 1)
-                rts                     ; Return
+                rts
 
-SKIP232         clc                     ; Pixel in lower screen half (y or z coordinate neg.)
+_5              clc                     ; Pixel in lower screen half (y or z coordinate neg.)
                 adc L_PIXELROW          ;
                 sta PIXELROWNEW,X       ; Pixel row := CENTERROW + relative pixel row
-                rts                     ; Return
+                rts
 
-SKIP233         cpx #NUMSPCOBJ_PL       ; Space object is offscreen. If it is a...
+_ENTRY1         cpx #NUMSPCOBJ_PL       ; Space object is offscreen. If it is a...
                 bcs INITPOSVEC          ; ...PLAYFIELD space object -> New position vector
                 lda #251                ; ...PLAYER space object    -> Push PLAYER offscreen
                 sta PIXELROWNEW,X       ;                              Why a value of 251 (?)
-SKIP234         rts                     ; Return
+_XIT            rts
+                .endproc
+
 
 ;*******************************************************************************
 ;*                                                                             *
@@ -444,7 +469,7 @@ SKIP234         rts                     ; Return
 ; (2)  If the position vector represents an explosion fragment space object then
 ;      return code execution immediately. This avoids generating new explosion
 ;      fragment space objects. They are separately initialized in subroutine
-;      COPYPOSVEC ($ACAF), which is called from subroutine INITEXPL ($AC6B).
+;      CopyPositionVector ($ACAF), which is called from subroutine INITEXPL ($AC6B).
 ;
 ; (3)  Assign default values (see below) to the position vector components
 ;      (coordinates) depending on our starship's view.
@@ -496,12 +521,18 @@ SKIP234         rts                     ; Return
 L_MAXRNDXY      = $6A                   ; Saves MAX(new y-coordinate (high byte), ...
                                         ;  ...new x-coordinate (high byte))
 
-INITPOSVEC      lda #99                 ; Init to offscreen pixel row and column numbers
+
+;======================================
+; Initialize position vector of a
+; space object
+;======================================
+INITPOSVEC      .proc
+                lda #99                 ; Init to offscreen pixel row and column numbers
                 sta PIXELROWNEW,X       ;
                 sta PIXELCOLUMN,X       ;
 
                 cpx #NUMSPCOBJ_NORM     ; Return if pos vector is explosion frag space obj
-                bcs SKIP234             ; This avoids creating new explosion frag space objs
+                bcs SCREENROW._XIT      ; This avoids creating new explosion frag space objs
 
                 lda RANDOM              ; RNDY := RND($00..$0F)
                 and #$0F                ;
@@ -511,9 +542,10 @@ INITPOSVEC      lda #99                 ; Init to offscreen pixel row and column
                 lda RANDOM              ; RNDX := RND($00..$0F)
                 and #$0F                ;
                 cmp L_MAXRNDXY          ;
-                bcc SKIP235             ;
+                bcc _1                  ;
+
                 sta L_MAXRNDXY          ; Save MAX(RNDY,RNDX)
-SKIP235         sta XPOSHI,X            ; x-coordinate (high byte) := RNDX
+_1              sta XPOSHI,X            ; x-coordinate (high byte) := RNDX
 
                 lda #$0F                ; z-coordinate (high byte) := $0F
                 sta ZPOSHI,X            ;
@@ -522,7 +554,7 @@ SKIP235         sta XPOSHI,X            ; x-coordinate (high byte) := RNDX
                 eor #$01                ;
                 and #$01                ;
                 sta ZPOSSIGN,X          ;
-                bne SKIP236             ; Skip if in Front or Long-Range Scan view
+                bne _2                  ; Skip if in Front or Long-Range Scan view
 
                                         ; Aft view only:
                 sta XPOSLO,X            ; x-coordinate (low byte) := 0
@@ -533,7 +565,7 @@ SKIP235         sta XPOSHI,X            ; x-coordinate (high byte) := RNDX
                 lda #$80                ; z-coordinate (low byte) := $80
                 sta ZPOSLO,X            ;
 
-SKIP236         bit SHIPVIEW            ; If not in Long-Range Scan view skip to RNDINVXY
+_2              bit SHIPVIEW            ; If not in Long-Range Scan view skip to RNDINVXY
                 bvc RNDINVXY            ;
 
                                         ; Long-Range Scan view only:
@@ -543,6 +575,11 @@ SKIP236         bit SHIPVIEW            ; If not in Long-Range Scan view skip to
                 sta ZPOSHI,X            ;
                 and #$01                ; Invert z-coordinate randomly
                 sta ZPOSSIGN,X          ;
+
+                .endproc
+
+                ;[fall-through]
+
 
 ;*******************************************************************************
 ;*                                                                             *
@@ -561,10 +598,16 @@ SKIP236         bit SHIPVIEW            ; If not in Long-Range Scan view skip to
 ;
 ;   X = Position vector index. Used values are: 0..48.
 
-RNDINVXY        lda RANDOM              ; Set sign of y-coordinate randomly
+
+;======================================
+; Randomly invert the x and y components
+; of a position vector
+;======================================
+RNDINVXY        .proc
+                lda RANDOM              ; Set sign of y-coordinate randomly
                 and #$01                ;
                 sta YPOSSIGN,X          ;
-                bne SKIP237             ; Skip if sign positive
+                bne _1                  ; Skip if sign positive
 
                 sec                     ; Sign negative -> Calc negative y-coordinate
                 sbc YPOSLO,X            ; (calculate two's-complement of 16-bit value)
@@ -573,10 +616,10 @@ RNDINVXY        lda RANDOM              ; Set sign of y-coordinate randomly
                 sbc YPOSHI,X            ;
                 sta YPOSHI,X            ;
 
-SKIP237         lda RANDOM              ; Set sign of x-coordinate randomly
+_1              lda RANDOM              ; Set sign of x-coordinate randomly
                 and #$01                ;
                 sta XPOSSIGN,X          ;
-                bne SKIP238             ; Skip if sign positive
+                bne _XIT                ; Skip if sign positive
 
                 sec                     ; Sign negative -> Calc negative x-coordinate
                 sbc XPOSLO,X            ; (calculate two's-complement of 16-bit value)
@@ -584,4 +627,5 @@ SKIP237         lda RANDOM              ; Set sign of x-coordinate randomly
                 lda #0                  ;
                 sbc XPOSHI,X            ;
                 sta XPOSHI,X            ;
-SKIP238         rts                     ; Return
+_XIT            rts                     ; Return
+                .endproc

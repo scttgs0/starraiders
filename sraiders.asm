@@ -27,6 +27,7 @@
                 .cpu "6502"
 
                 .include "equates/system_atari8.equ"
+                .include "equates/zeropage.equ"
                 .include "equates/game.equ"
 
 
@@ -52,41 +53,35 @@
                 .include "DATA/CHARSET.inc"
                 .include "DATA/VIEWS.inc"
 
+;--------------------------------------
 
-;*******************************************************************************
-;*                                                                             *
-;*                              G A M E   C O D E                              *
-;*                                                                             *
-;*******************************************************************************
-
-                .include "src/initcold.asm"
+                .include "src/gameinit.asm"
                 .include "src/gameloop.asm"
-
-                .include "src/interrupt.asm"
-
-                .include "src/linedraw.asm"
+                .include "src/irqhandler.asm"
+                .include "src/drawline.asm"
                 .include "src/attackcomputer.asm"
                 .include "src/hyperwarp.asm"
                 .include "src/projection.asm"
                 .include "src/maneuver.asm"
                 .include "src/explode.asm"
-                .include "src/dock.asm"
-                .include "src/display.asm"
+                .include "src/docking.asm"
+                .include "src/playfield.asm"
                 .include "src/trigger.asm"
                 .include "src/noise.asm"
                 .include "src/combat.asm"
                 .include "src/keyboard.asm"
                 .include "src/gameover.asm"
-                .include "src/galacticchart.asm"
+                .include "src/selectwarp.asm"
                 .include "src/titleline.asm"
                 .include "src/sound.asm"
-                .include "src/gameinit.asm"
-                .include "src/galacticchartdraw.asm"
-                .include "src/flush.asm"
-
+                .include "src/initialize.asm"
+                .include "src/galacticchart.asm"
+                .include "src/gameloopflush.asm"
                 .include "src/calc.asm"
-                .include "src/encircled.asm"
+                .include "src/surrounded.asm"
                 .include "src/panel.asm"
+
+;--------------------------------------
 
                 .include "DATA/PART2.inc"
 

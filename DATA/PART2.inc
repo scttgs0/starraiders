@@ -1563,5 +1563,5 @@ NOISETORPFRQTAB .byte $00                             ;
                 .byte $07                             ; (unused)
 
                 .byte $00                             ; Always 0 for cartridges
-                .byte $80                             ; On SYSTEM RESET jump to INITCOLD via
-                .word INITCOLD                        ; Cartridge Initialization Address
+                .byte $80                             ; On SYSTEM RESET jump to COLD via
+                .word InitGame.COLD                   ; Cartridge Initialization Address
