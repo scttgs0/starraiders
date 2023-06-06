@@ -102,7 +102,7 @@ GAMEOVER        .proc
                 sta BEEPPRIORITY        ; Mute beeper
                 sta TITLEPHR            ; Clear title line
                 sta REDALERTLIFE        ; Red alert flash lifetime := 0 game loops
-                sta AUDC4               ; Mute audio channel 4
+                ;--sta AUDC4               ; Mute audio channel 4
                 sta NEWVELOCITY         ; Shut down Engines
                 sta SHIELDSCOLOR        ; Set Shields color to {BLACK}
                 sta DRAINSHIELDS        ; Switch off Shields

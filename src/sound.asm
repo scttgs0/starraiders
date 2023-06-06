@@ -232,7 +232,7 @@ _next1          lda BEEPTONELIFE        ; Load tone lifetime
                 ldx BEEPFRQIND          ; Load frequency index
                 inc BEEPFRQIND          ; Increment frequency index
                 lda BEEPFRQTAB,X        ; Store tone frequency from frequency table in AUDF4
-                sta AUDF4               ;
+                ;--sta AUDF4               ;
                 ldy #$A8                ; Prep AUDC4 (tone distortion + medium volume)
                 cmp #$FF                ; Skip if frequency not $FF (there are more tones)
                 bne _1                  ;
@@ -245,7 +245,7 @@ _next1          lda BEEPTONELIFE        ; Load tone lifetime
                 ldy #0                  ; Prep AUDC4 with zero volume
                 sty BEEPPRIORITY        ; Stop playing beeper sound pattern
 
-_1              sty AUDC4               ; Store in AUDC4
+_1              ;--sty AUDC4               ; Store in AUDC4
                 sty BEEPTOGGLE          ; Store in BEEPTOGGLE
 
 ;*** Play ZYLON EXPLOSION noise sound pattern **********************************
@@ -275,7 +275,7 @@ _3              ldx VELOCITYLO          ; Skip if Engines softer than noise soun
                 inx                     ;
                 txa                     ; A := %abcdefgh = VELOCITYLO + 1
                 eor #$FF                ;           ________
-                sta AUDF3               ; AUDF3 := %abcdefgh
+                ;--sta AUDF3               ; AUDF3 := %abcdefgh
 
                 tax                     ;                ________
                 asl                     ; AUDF2/1 := %000abcdefgh00000
@@ -283,23 +283,23 @@ _3              ldx VELOCITYLO          ; Skip if Engines softer than noise soun
                 asl                     ;
                 asl                     ;
                 asl                     ;
-                sta AUDF1               ;
+                ;--sta AUDF1               ;
 
                 txa                     ;
                 lsr                     ;
                 lsr                     ;
                 lsr                     ;
-                sta AUDF2               ;
+                ;--sta AUDF2               ;
 
                 lsr                     ; AUDC2 := %1000abcd
                 eor #$8F                ; (noise distortion + B7..B4 bits for volume)
-                sta AUDC2               ;
+                ;--sta AUDC2               ;
 
                 and #$87                ; AUDC3 := %10000bcd
-                sta AUDC3               ; (noise distortion + B6..B4 bits for volume)
+                ;--sta AUDC3               ; (noise distortion + B6..B4 bits for volume)
 
                 lda #$70                ; Clock audio channel 1 and 3 @ 1.79 MHz and...
-                sta AUDCTL              ; ...combine audio channel 1/2 to 16-bit channel
+                ;--sta AUDCTL              ; ...combine audio channel 1/2 to 16-bit channel
 
                 rts
 
@@ -329,16 +329,16 @@ _5              ldx NOISETORPTIM        ; Skip if photon torpedo noise timer not
 _6              lda NOISETORPVOLTAB-1,X ; Pick torpedo noise + volume shape (X in 1..8)...
                 sta NOISEAUDC3          ; ...and store it in AUDC3's shadow register
                 lda NOISETORPFRQTAB-1,X ; Pick photon torpedo noise frequency (X in 1..8)...
-                sta AUDF3               ; ...and store it in AUDF3
-                sta STIMER              ; Reset POKEY audio timers
+                ;--sta AUDF3               ; ...and store it in AUDF3
+                ;--sta STIMER              ; Reset POKEY audio timers
 
 ;*** Play STARSHIP EXPLOSION noise when our starship is hit ********************
 _7              lda NOISEHITLIFE        ; Skip if STARSHIP EXPLOSION noise not in use
                 beq _8                  ;
 
                 dec NOISEHITLIFE        ; Decrement STARSHIP EXPLOSION noise lifetime
-                lda RANDOM              ; Set random frequency to AUDF3
-                sta AUDF3               ;
+                .randomByte             ; Set random frequency to AUDF3
+                ;--sta AUDF3               ;
                 and #$20                ; Toggle noise/tone dist. of AUDC3's shadow register
                 eor NOISEAUDC3          ; ...randomly
                 sta NOISEAUDC3          ;
@@ -348,11 +348,11 @@ _8              clc                     ; Increase 16-bit frequency value of AUD
                 lda NOISEAUDF1          ; ...and its shadow register by...
                 adc NOISEFRQINC         ; ...noise sound pattern frequency increment
                 sta NOISEAUDF1          ; AUDF1/2 := NOISEAUDF1/2 := ...
-                sta AUDF1               ; ...NOISEAUDF1/2 + NOISEFRQINC
+                ;--sta AUDF1               ; ...NOISEAUDF1/2 + NOISEFRQINC
                 lda NOISEAUDF2          ;
                 adc #0                  ;
                 sta NOISEAUDF2          ;
-                sta AUDF2               ;
+                ;--sta AUDF2               ;
 
 ;*** Gradually mute audio channels while noise sound pattern expires ***********
                 ldx NOISEAUDC2          ; Prep AUDC2's shadow register value
@@ -383,8 +383,8 @@ _9              tya                     ; Decrement volume of AUDC3's shadow reg
                 dey                     ;
                 sty NOISEAUDC3          ;
 
-_10             stx AUDC2               ; Store shadow register values to audio registers
-                sty AUDC3               ;
+_10             ;--stx AUDC2               ; Store shadow register values to audio registers
+                ;--sty AUDC3               ;
 
                 rts
                 .endproc

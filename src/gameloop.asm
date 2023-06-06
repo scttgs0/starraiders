@@ -323,7 +323,7 @@ _next5          sta PL0DATA,Y           ;
 
 _next6          lda PLSHAP1TAB,Y        ; Load PLAYER4 shape byte from shape data table
                 bcs _2                  ; Skip if PLAYER4 not PHOTON TORPEDO (shape type 0)
-                and RANDOM              ; and random bits to shape byte
+                and randomREG           ; and random bits to shape byte
 _2              sta PL4DATA,X           ; Store shape byte in PLAYER4 data area
                 iny                     ;
                 inx                     ;
@@ -340,7 +340,7 @@ _2              sta PL4DATA,X           ; Store shape byte in PLAYER4 data area
                 sta PL3HEIGHT           ;
 _next7          lda PLSHAP1TAB,Y        ;
                 bcs _3                  ;
-                and RANDOM              ;
+                and randomREG           ;
 _3              sta PL3DATA,X           ;
                 inx                     ;
                 iny                     ;
@@ -357,7 +357,7 @@ _3              sta PL3DATA,X           ;
                 sta PL2HEIGHT           ;
 _next8          lda PLSHAP1TAB,Y        ;
                 bcs _4                  ;
-                and RANDOM              ;
+                and randomREG           ;
 _4              sta PL2DATA,X           ;
                 inx                     ;
                 iny                     ;
@@ -392,22 +392,15 @@ _next10         lda PLSHAP2TAB,Y        ;
 
 ;*** (7) Update PLAYER horizontal positions ************************************
                 lda PL0COLUMN           ; Update horizontal position of PLAYER0
-                sta HPOSP0              ;
+                sta SP00_X              ;
                 lda PL1COLUMN           ; Update horizontal position of PLAYER1
-                sta HPOSP1              ;
+                sta SP01_X              ;
                 lda PL2COLUMN           ; Update horizontal position of PLAYER2
-                sta HPOSP2              ;
+                sta SP02_X              ;
                 lda PL3COLUMN           ; Update horizontal position of PLAYER3
-                sta HPOSP3              ;
+                sta SP03_X              ;
                 lda PL4COLUMN           ; Update horizontal position of PLAYER4
-                sta HPOSM3              ;
-                clc                     ;
-                adc #2                  ;
-                sta HPOSM2              ;
-                adc #2                  ;
-                sta HPOSM1              ;
-                adc #2                  ;
-                sta HPOSM0              ;
+                sta SP04_X              ;
 
 ;*** (8) Rotate space objects horizontally and vertically **********************
                 bit SHIPVIEW            ; Skip if in Galactic Chart view
@@ -725,7 +718,7 @@ _1              lda #0                  ;
                 cpx #3                  ; Next PLAYER space object if PLAYER0..2
                 bcc _next1              ;
 
-_next2          lda RANDOM              ; Prep random color mask for warp markers/LRS blips
+_next2          .randomByte             ; Prep random color mask for warp markers/LRS blips
                 ldy #$F2                ; Prep magic z-coordinate for warp markers/LRS blips
                 bmi _4                  ; Unconditional jump
 
@@ -800,7 +793,7 @@ _6              sta L_RANGEINDEX        ; ...trim to range index in 0..15
                 lda PLSHAPCOLORTAB,Y    ;
                 cpy #8                  ; Pick random color if ZYLON BASESTAR (shape type 8)
                 bne _7                  ;
-                eor RANDOM              ;
+                eor randomREG           ;
 _7              ldy L_RANGEINDEX        ;
                 eor PLSHAPBRITTAB,Y     ; Pick brightness (B3..0) using range index and merge
 
@@ -873,7 +866,7 @@ _12             asl                     ; Compute index to pixel color table:
 _13             jsr KEYBOARD            ; Handle keyboard input
 
 ;*** (20) Handle joystick input ************************************************
-                lda PORTA               ; Load Joystick 0 directions
+                ;--lda PORTA               ; Load Joystick 0 directions
                 tay                     ; ...Bits B0..3 -> Right, left, down, up.
                 and #$03                ; ...Bit = 0/1 -> Stick pressed/not pressed
                 tax                     ; JOYSTICKY := +1 -> Up
@@ -1011,7 +1004,7 @@ _18             stx HITBADNESS          ; Store HITBADNESS
 
 ;*** (28) Handle function keys *************************************************
 _19             ldy FKEYCODE            ; Prep old function key code
-                lda CONSOL              ; POKEY: Load function key code
+                ;--lda CONSOL              ; POKEY: Load function key code
 
                 eor #$FF                ; Store inverted and masked function key code
                 and #$03                ;

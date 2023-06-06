@@ -450,7 +450,7 @@ _next2          lda PL2SHAPOFF          ; If PLAYER2 shape is initial try to cre
                 lda PL2LIFE             ; Return if PLAYER2 alive
                 bne _XIT1               ;
 
-_11             lda RANDOM              ; Return in 98% (252:256) (do not create meteor)
+_11             .randomByte             ; Return in 98% (252:256) (do not create meteor)
                 cmp #4                  ;
                 bcs _XIT1               ;
 
@@ -490,7 +490,7 @@ _12             lda CTRLDZYLON          ; Toggle control to the other Zylon ship
                 lda #255                ; Zylon ship lifetime := 255 game loops (infinite)
                 sta PL0LIFE,X           ;
 
-                lda RANDOM              ; Pick a Zylon ship shape type (1 out of 8)
+                .randomByte             ; Pick a Zylon ship shape type (1 out of 8)
                 and #$07                ;
                 tay                     ;
                 lda ZYLONSHAPTAB,Y      ;
@@ -506,7 +506,7 @@ _13             sta ZYLONFLPAT0,X       ;
                 sta MILESTTIM0,X        ;
 
                 sta ZPOSSIGN,X          ; Put Zylon ship in front of our starship
-                lda RANDOM              ;
+                .randomByte             ;
                 and VICINITYMASK        ; y-coordinate (high byte) := RND(0..VICINITYMASK)
                 sta YPOSHI,X            ;
                 adc #19                 ; x-coordinate (high byte) := y (high byte) + 19
@@ -540,7 +540,7 @@ _16             dec MILESTTIM0,X        ; Skip if milestone timer still counting
                 sta MILESTTIM0,X        ;
 
                 lda MISSIONLEVEL        ; Back-attack flag := 1 in 19% (48:256) of...
-                ldy RANDOM              ; ...WARRIOR or COMMANDER missions
+                .randomByteY            ; ...WARRIOR or COMMANDER missions
                 cpy #48                 ; ...              := 0 otherwise
                 bcc _17                 ;
 
@@ -550,7 +550,7 @@ _17             lsr                     ;
 
                                         ; Loop over all 3 milestone velocity indices
                 lda ZYLONFLPAT0,X       ; Set new milestone velocity index:
-_next3          bit RANDOM              ; If Zylon flight pattern is...
+_next3          bit randomREG           ; If Zylon flight pattern is...
                 bpl _18                 ; ...0 -> milestone velocity index := either 0 or 15
 
                 eor #$0F                ; ...1 -> milestone velocity index := either 1 or 14

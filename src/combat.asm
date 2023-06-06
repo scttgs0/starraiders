@@ -169,7 +169,7 @@ Damage          .proc
 
 ;*** Damage some subsystem *****************************************************
                 ldx MISSIONLEVEL        ; Prep mission level
-_next1          lda RANDOM              ; Return if random number >= damage probability
+_next1          .randomByte             ; Return if random number >= damage probability
                 cmp DAMAGEPROBTAB,X     ; ...(the latter depends on mission level)
                 bcs _XIT                ;
 

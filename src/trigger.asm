@@ -65,7 +65,7 @@
 TRIGGER         .proc
                 lda OLDTRIG0            ; Prep last trigger state
 
-                ldy TRIG0               ; Copy current trigger state
+                ;--ldy TRIG0               ; Copy current trigger state
                 sty OLDTRIG0            ;
                 bne _XIT1               ; Return if trigger currently not pressed
 

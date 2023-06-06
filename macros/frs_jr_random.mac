@@ -1,0 +1,18 @@
+
+randomREG      = RNG_DAT_LO
+
+randomByte      .macro
+                lda randomREG
+                .endmacro
+
+randomByteY     .macro
+                ldy randomREG
+                .endmacro
+
+randomWord      .macro
+                ; lda randomREG
+                .endmacro
+
+randomClamp     .macro clamp
+                ; TODO:
+                .endmacro

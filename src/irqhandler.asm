@@ -37,11 +37,11 @@ VBIHNDLR        ;.proc
                 lda #$FF                ; Signals entering Vertical Blank Interrupt
                 sta ISVBISYNC           ;
 
-                lda #>ROMCHARSET        ; Switch character set to ROM character set
-                sta CHBASE              ;
+                ;--lda #>ROMCHARSET        ; Switch character set to ROM character set
+                ;--sta CHBASE              ;
 
                 ldx BGRCOLOR            ; Preload BACKGROUND color
-                lda RANDOM              ; Preload random number
+                .randomByte             ; Preload random number
                 bit HITBADNESS          ; Check if our starship was hit
                 bvc _2                  ; If HITBADNESS has a value of...
                 bmi _1                  ; $00 -> NO HIT             (BGR color := unchanged)
@@ -58,11 +58,11 @@ _3              stx BGRCOLOR            ; Store BACKGROUND color
 
                 ldx #8                  ; Copy all color registers to hardware registers
 _next1          lda PL0COLOR,X          ;
-                sta COLPM0,X            ;
+                ;--sta COLPM0,X            ;
                 dex                     ;
                 bpl _next1              ;
 
-                sta HITCLR              ; Clear Player/Missile collision registers
+                ;--sta HITCLR              ; Clear Player/Missile collision registers
 
                 jsr SOUND               ; Call sound effects
 
@@ -109,26 +109,28 @@ DLSTHNDLR       ;.proc
                 tya                     ;
                 pha                     ; Push Y
 
-                lda #>ROMCHARSET        ; Switch to ROM charset if ANTIC line counter = 96
-                ldy VCOUNT              ; ...else switch to custom character set
+                ;--ldy VCOUNT
                 cpy #96                 ;
-                beq _1                  ;
-                lda #>CHARSET           ;
-_1              sta CHBASE              ;
+                beq _1                  ; line counter = 96?
 
-                ldx #4                  ; Loop over all PLAYFIELD colors
-                sta WSYNC               ; Stop and wait for horizontal TV beam sync
+                .frsFont1               ;   no, switch to custom character set
+                bra _2
+
+_1              .frsFont0               ;   yes, switch to standard charset
+
+_2              ldx #4                  ; Loop over all PLAYFIELD colors
+                ;--sta WSYNC               ; Stop and wait for horizontal TV beam sync
 _next1          lda PF0COLORDLI,X       ; Copy DLI PLAYFIELD colors to hardware registers
-                sta COLPF0,X            ;
+                ;--sta COLPF0,X            ;
                 dex                     ;
                 bpl _next1              ; Next PLAYFIELD color
 
-                lda M0PL                ; Merge MISSILE-to-PLAYER collision registers...
-                ora M1PL                ;
-                ora M2PL                ;
-                ora M3PL                ;
+                ;--lda M0PL                ; Merge MISSILE-to-PLAYER collision registers...
+                ;--ora M1PL                ;
+                ;--ora M2PL                ;
+                ;--ora M3PL                ;
                 sta PL4HIT              ; ...and store them in PL4HIT
-                lda P3PL                ; Copy PLAYER3-to-PLAYER coll. register to PL3HIT
+                ;--lda P3PL                ; Copy PLAYER3-to-PLAYER coll. register to PL3HIT
                 sta PL3HIT              ;
 
 _XIT            pla                     ; Pop Y
@@ -159,10 +161,10 @@ _XIT            pla                     ; Pop Y
 IRQHNDLR        ;.proc
                 pha                     ; Push A
                 lda #0                  ; POKEY: Disable all IRQs
-                sta IRQEN               ;
+                ;--sta IRQEN               ;
                 lda #$40                ; POKEY: Enable keyboard interrupt (IRQ)
-                sta IRQEN               ;
-                lda KBCODE              ; POKEY: Load keyboard key code
+                ;--sta IRQEN               ;
+                ;--lda KBCODE              ; POKEY: Load keyboard key code
                 ora #$C0                ; Combine with SHIFT and CONTROL key bits
                 sta KEYCODE             ; Store keyboard code
                 pla                     ; Pop A
