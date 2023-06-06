@@ -1,3 +1,4 @@
+
 ;*******************************************************************************
 ;*                                                                             *
 ;*                G A M E   D A T A   ( P A R T   2   O F   2 )                *
@@ -886,151 +887,63 @@ PHRASETAB       .byte $00                             ; (unused)
 EOW             = $80                                 ; End of word
 
 WORDTAB         .text EOW|$20,"    RED ALERT"         ; Word $01
-
-
-
                 .text EOW|'O',"N"                      ; Word $02
                 .text EOW|'O',"FF"                     ; Word $03
                 .text EOW|'S',"HIELDS"                 ; Word $04
-
                 .text EOW|'A',"TTACK"                  ; Word $05
-
                 .text EOW|'C',"OMPUTER"                ; Word $06
-
                 .text EOW|'T',"RACKING"                ; Word $07
-
                 .text EOW|'W',"HATS WRONG?"            ; Word $08
-
-
                 .text EOW|'H',"YPERWARP"               ; Word $09
-
-
                 .text EOW|'E',"NGAGED"                 ; Word $0A
-
                 .text EOW|'S',"TARBASE"                ; Word $0B
-
                 .text EOW|'D',"ESTROYED"               ; Word $0C
-
-
                 .text EOW|'S',"URROUNDED"              ; Word $0D
-
-
                 .text EOW|'A',"BORTED"                 ; Word $0E
-
                 .text EOW|'C',"OMPLETE"                ; Word $0F
-
                 .text EOW|'H',"YPERSPACE"              ; Word $10
-
-
                 .text EOW|'O',"RBIT"                   ; Word $11
-
                 .text EOW|'E',"STABLISHED"             ; Word $12
-
-
                 .text EOW|'D',"OCKING"                 ; Word $13
-
                 .text EOW|'E',"NERGY"                  ; Word $14
-
                 .text EOW|'T',"RANSFER"                ; Word $15
-
                 .text EOW|'S',"TANDBY"                 ; Word $16
-
                 .text EOW|'S',"TAR FLEET TO"           ; Word $17
-
-
-
                 .text EOW|'S',"TAR CRUISER 7"          ; Word $18
-
-
-
                 .text EOW|'A',"LL UNITS"               ; Word $19
-
-
                 .text EOW|'M',"ISSION"                 ; Word $1A
-
                 .text EOW|$20,"   STAR RAIDERS"       ; Word $1B
-
-
-
                 .text EOW|'Z',"ERO"                    ; Word $1C
                 .text EOW|'B',"Y ZYLON FIRE"           ; Word $1D
-
-
-
                 .text EOW|'P',"OSTHUMOUS"              ; Word $1E
-
-
                 .text EOW|'R',"ANK IS:"                ; Word $1F
-
                 .text EOW|'C',"OPYRIGHT ATARI 1979"    ; Word $20
-
-
-
-
                 .text EOW|'S',"UB-SPACE RADIO"         ; Word $21
-
-
-
                 .text EOW|'S',"ECTOR SCAN"             ; Word $22
-
-
                 .text EOW|'E',"NGINES"                 ; Word $23
-
                 .text EOW|'N',"EW"                     ; Word $24
                 .text EOW|'C',"LASS"                   ; Word $25
-
                 .text EOW|'C',"ONGRATULATIONS"         ; Word $26
-
-
-
                 .text EOW|'R',"EPORT TO BASE"          ; Word $27
-
-
-
                 .text EOW|'F',"OR TRAINING"            ; Word $28
-
-
                 .text EOW|'G',"ALACTIC COOK"           ; Word $29
-
-
-
                 .text EOW|'G',"ARBAGE SCOW CAPTAIN"    ; Word $2A
-
-
-
-
                 .text EOW|'R',"OOKIE"                  ; Word $2B
-
                 .text EOW|'N',"OVICE"                  ; Word $2C
-
                 .text EOW|'E',"NSIGN"                  ; Word $2D
-
                 .text EOW|'P',"ILOT"                   ; Word $2E
-
                 .text EOW|'A',"CE"                     ; Word $2F
                 .text EOW|'L',"IEUTENANT"              ; Word $30
-
-
                 .text EOW|'W',"ARRIOR"                 ; Word $31
-
                 .text EOW|'C',"APTAIN"                 ; Word $32
-
                 .text EOW|'C',"OMMANDER"               ; Word $33
-
-
                 .text EOW|'D',"AMAGE"                  ; Word $34
-
                 .text EOW|'D',"AMAGED"                 ; Word $35
-
                 .text EOW|'C',"ONTROL"                 ; Word $36
-
                 .text EOW|'P',"HOTONS"                 ; Word $37
-
-                .text EOW|$20                         ; Word $38
+                .text EOW|$20                          ; Word $38
                 .text EOW|'S',"TAR COMMANDER"          ; Word $39
-
-
-                .byte EOW|$00                         ;
+                .byte EOW|$00
 
 ;*** View modes ****************************************************************
 VIEWMODETAB     .byte $00                             ; Front view
@@ -1234,45 +1147,27 @@ MSGONTAB        .byte $0B                             ; "COMPUTER TRACKING ON"
 
 ;*** Shape type 0..9 offset table (10 shape cell offsets of shape type...) *****
 PLSHAPOFFTAB    .byte $01,$11,$1F,$2B,$35,$3D,$75,$7A ; ...0 into PLSHAP1TAB
-
                 .byte $01,$0D,$15,$1B,$21,$25,$29,$2B ; ...1 into PLSHAP2TAB
-
                 .byte $2D,$38,$41,$36,$36,$00,$00,$00 ; ...2 into PLSHAP2TAB
-
                 .byte $7E,$8E,$9D,$AA,$B4,$BC,$7B,$7A ; ...3 into PLSHAP1TAB
-
                 .byte $47,$52,$5B,$50,$50,$00,$00,$00 ; ...4 into PLSHAP2TAB
-
                 .byte $43,$53,$61,$6C,$75,$7A,$75,$7A ; ...5 into PLSHAP1TAB
-
                 .byte $01,$11,$1F,$2B,$35,$3D,$75,$7A ; ...6 into PLSHAP1TAB
-
                 .byte $61,$6A,$72,$79,$7F,$83,$29,$2B ; ...7 into PLSHAP2TAB
-
                 .byte $86,$90,$9A,$A1,$A8,$AD,$29,$2B ; ...8 into PLSHAP2TAB
-
                 .byte $C1,$C1,$C1,$C1,$C1,$C1,$75,$C1 ; ...9 into PLSHAP1TAB
 
 
 ;*** Shape type 0..9 height table (10 shape cell heights of shape type...) *****
 PLSHAPHEIGHTTAB .byte $0F,$0D,$0B,$09,$07,$05,$01,$01 ; ...0
-
                 .byte $0B,$07,$05,$05,$03,$03,$01,$01 ; ...1
-
                 .byte $09,$08,$05,$02,$00,$00,$00,$00 ; ...2
-
                 .byte $0F,$0E,$0C,$09,$07,$04,$02,$01 ; ...3
-
                 .byte $09,$08,$05,$02,$00,$00,$00,$00 ; ...4
-
                 .byte $0F,$0D,$0A,$08,$04,$03,$01,$01 ; ...5
-
                 .byte $0F,$0D,$0B,$09,$07,$05,$01,$01 ; ...6
-
                 .byte $08,$07,$06,$05,$03,$02,$01,$01 ; ...7
-
                 .byte $09,$09,$06,$06,$04,$03,$01,$01 ; ...8
-
                 .byte $0B,$0B,$0B,$0B,$0B,$0B,$01,$0B ; ...9
 
 
@@ -1396,11 +1291,7 @@ DESTROYPHRTAB   .byte $58                             ; "PHOTON TORPEDOS DESTROY
 ;
 ;                     (0),(1),(2),(3),(4),(5),(6),(7),(8),(9)
 NOISEPATTAB     .byte $18,$FF,$02,$00,$8A,$A0,$00,$08,$50,$00; PHOTON TORPEDO LAUNCHED
-
-
                 .byte $40,$40,$01,$03,$88,$AF,$08,$00,$50,$04; SHIELD EXPLOSION
-
-
                 .byte $30,$40,$01,$03,$84,$A8,$04,$00,$50,$04; ZYLON EXPLOSION
 
 

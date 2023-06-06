@@ -1,3 +1,4 @@
+
 ;*******************************************************************************
 ;*                                                                             *
 ;*                           S T A R   R A I D E R S                           *
@@ -25,8 +26,8 @@
 
                 .cpu "6502"
 
-                .include "equates_system_atari8.asm"
-                .include "equates_game.asm"
+                .include "equates/system_atari8.equ"
+                .include "equates/game.equ"
 
 
 ;--------------------------------------
@@ -47,9 +48,9 @@
 
                 .logical $A000
 
-                .include "game_data1.asm"
-                .include "charset.asm"
-                .include "views.asm"
+                .include "DATA/PART1.inc"
+                .include "DATA/CHARSET.inc"
+                .include "DATA/VIEWS.inc"
 
 
 ;*******************************************************************************
@@ -58,36 +59,36 @@
 ;*                                                                             *
 ;*******************************************************************************
 
-                .include "initcold.asm"
-                .include "gameloop.asm"
+                .include "src/initcold.asm"
+                .include "src/gameloop.asm"
 
-                .include "interrupt.asm"
+                .include "src/interrupt.asm"
 
-                .include "linedraw.asm"
-                .include "attackcomputer.asm"
-                .include "hyperwarp.asm"
-                .include "projection.asm"
-                .include "maneuver.asm"
-                .include "explode.asm"
-                .include "dock.asm"
-                .include "display.asm"
-                .include "trigger.asm"
-                .include "noise.asm"
-                .include "combat.asm"
-                .include "keyboard.asm"
-                .include "gameover.asm"
-                .include "galacticchart.asm"
-                .include "titleline.asm"
-                .include "sound.asm"
-                .include "gameinit.asm"
-                .include "galacticchartdraw.asm"
-                .include "flush.asm"
+                .include "src/linedraw.asm"
+                .include "src/attackcomputer.asm"
+                .include "src/hyperwarp.asm"
+                .include "src/projection.asm"
+                .include "src/maneuver.asm"
+                .include "src/explode.asm"
+                .include "src/dock.asm"
+                .include "src/display.asm"
+                .include "src/trigger.asm"
+                .include "src/noise.asm"
+                .include "src/combat.asm"
+                .include "src/keyboard.asm"
+                .include "src/gameover.asm"
+                .include "src/galacticchart.asm"
+                .include "src/titleline.asm"
+                .include "src/sound.asm"
+                .include "src/gameinit.asm"
+                .include "src/galacticchartdraw.asm"
+                .include "src/flush.asm"
 
-                .include "calc.asm"
-                .include "encircled.asm"
-                .include "panel.asm"
+                .include "src/calc.asm"
+                .include "src/encircled.asm"
+                .include "src/panel.asm"
 
-                .include "game_data2.asm"
+                .include "DATA/PART2.inc"
 
                 .endlogical
 
