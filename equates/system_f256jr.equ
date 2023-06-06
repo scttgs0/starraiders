@@ -489,8 +489,8 @@ JOYSTICK1               = $DC01
 JOY_UP              = $01               ;           1110            bit-0   UP
 JOY_DOWN            = $02               ;      1010   |   0110      bit-1   DOWN
 JOY_LEFT            = $04               ;          \  |  /          bit-2   LEFT
-JOT_RIGHT           = $08               ;   1011----1111----0111    bit-3   RIGHT
-JOT_BUTTON0         = $10               ;          /  |  \
+JOY_RIGHT           = $08               ;   1011----1111----0111    bit-3   RIGHT
+JOY_BUTTON0         = $10               ;          /  |  \
 JOY_BUTTON1         = $20               ;      1001   |   0101
 JOY_BUTTON2         = $40               ;           1101
 
