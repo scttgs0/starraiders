@@ -14,7 +14,8 @@ PLCOLOROFFTAB   .byte 0                               ; PLAYER0
 
 ;*** Shape table 1 (PLAYER2..4) ************************************************
 PLSHAP1TAB      .byte $00                             ; ........
-                .byte $18                             ; ...##...
+
+                .byte $18                             ; ...##...    ; [$01..$10]
                 .byte $3C                             ; ..####..
                 .byte $7E                             ; .######.
                 .byte $7E                             ; .######.
@@ -30,7 +31,8 @@ PLSHAP1TAB      .byte $00                             ; ........
                 .byte $7E                             ; .######.
                 .byte $3C                             ; ..####..
                 .byte $18                             ; ...##...
-                .byte $10                             ; ...#....
+
+                .byte $10                             ; ...#....    ; [$11..$1E]
                 .byte $38                             ; ..###...
                 .byte $7C                             ; .#####..
                 .byte $7C                             ; .#####..
@@ -44,7 +46,8 @@ PLSHAP1TAB      .byte $00                             ; ........
                 .byte $7C                             ; .#####..
                 .byte $38                             ; ..###...
                 .byte $10                             ; ...#....
-                .byte $18                             ; ...##...
+
+                .byte $18                             ; ...##...    ; [$1F..$2A]
                 .byte $3C                             ; ..####..
                 .byte $3C                             ; ..####..
                 .byte $7E                             ; .######.
@@ -56,7 +59,8 @@ PLSHAP1TAB      .byte $00                             ; ........
                 .byte $3C                             ; ..####..
                 .byte $3C                             ; ..####..
                 .byte $18                             ; ...##...
-                .byte $10                             ; ...#....
+
+                .byte $10                             ; ...#....    ; [$2B..$34]
                 .byte $38                             ; ..###...
                 .byte $38                             ; ..###...
                 .byte $7C                             ; .#####..
@@ -66,7 +70,8 @@ PLSHAP1TAB      .byte $00                             ; ........
                 .byte $38                             ; ..###...
                 .byte $38                             ; ..###...
                 .byte $10                             ; ...#....
-                .byte $10                             ; ...#....
+
+                .byte $10                             ; ...#....    ; [$35..$3C]
                 .byte $18                             ; ...##...
                 .byte $3C                             ; ..####..
                 .byte $2C                             ; ..#.##..
@@ -74,13 +79,15 @@ PLSHAP1TAB      .byte $00                             ; ........
                 .byte $3C                             ; ..####..
                 .byte $18                             ; ...##...
                 .byte $08                             ; ....#...
-                .byte $10                             ; ...#....
+
+                .byte $10                             ; ...#....    ; [3D..$42]
                 .byte $38                             ; ..###...
                 .byte $38                             ; ..###...
                 .byte $28                             ; ..#.#...
                 .byte $38                             ; ..###...
                 .byte $10                             ; ...#....
-                .byte $3C                             ; ..####..
+
+                .byte $3C                             ; ..####..    ; [$43..$52]
                 .byte $3C                             ; ..####..
                 .byte $24                             ; ..#..#..
                 .byte $3C                             ; ..####..
@@ -96,7 +103,8 @@ PLSHAP1TAB      .byte $00                             ; ........
                 .byte $42                             ; .#....#.
                 .byte $42                             ; .#....#.
                 .byte $42                             ; .#....#.
-                .byte $1C                             ; ...###..
+
+                .byte $1C                             ; ...###..    ; [$53..$60]
                 .byte $1C                             ; ...###..
                 .byte $14                             ; ...#.#..
                 .byte $3E                             ; ..#####.
@@ -110,7 +118,8 @@ PLSHAP1TAB      .byte $00                             ; ........
                 .byte $22                             ; ..#...#.
                 .byte $22                             ; ..#...#.
                 .byte $22                             ; ..#...#.
-                .byte $18                             ; ...##...
+
+                .byte $18                             ; ...##...    ; [$61..$6B]
                 .byte $18                             ; ...##...
                 .byte $3C                             ; ..####..
                 .byte $3C                             ; ..####..
@@ -121,7 +130,8 @@ PLSHAP1TAB      .byte $00                             ; ........
                 .byte $24                             ; ..#..#..
                 .byte $24                             ; ..#..#..
                 .byte $24                             ; ..#..#..
-                .byte $10                             ; ...#....
+
+                .byte $10                             ; ...#....    ; [$6C..$74]
                 .byte $10                             ; ...#....
                 .byte $38                             ; ..###...
                 .byte $38                             ; ..###...
@@ -130,16 +140,21 @@ PLSHAP1TAB      .byte $00                             ; ........
                 .byte $28                             ; ..#.#...
                 .byte $28                             ; ..#.#...
                 .byte $28                             ; ..#.#...
-                .byte $18                             ; ...##...
-                .byte $18                             ; ...##...
-                .byte $3C                             ; ..####..
-                .byte $18                             ; ...##...
-                .byte $18                             ; ...##...
-                .byte $10                             ; ...#....
-                .byte $10                             ; ...#....
-                .byte $38                             ; ..###...
-                .byte $10                             ; ...#....
-                .byte $18                             ; ...##...
+
+                .byte $18                             ; ...##...    ; [$75..$76]    \ [$75..$79]
+                .byte $18                             ; ...##...                    ;
+                                                                                    ;
+                .byte $3C                             ; ..####..                    ;
+                .byte $18                             ; ...##...                    ;
+                .byte $18                             ; ...##...                    /
+
+                .byte $10                             ; ...#....    ; [$7A..$7B]                    \ [$7A..$7D]
+                .byte $10                             ; ...#....                    \ [$7B..$7D]    ;
+                                                                                    ;               ;
+                .byte $38                             ; ..###...                    ;               ;
+                .byte $10                             ; ...#....                    /               /
+
+                .byte $18                             ; ...##...    ; [7E..$8D]
                 .byte $7E                             ; .######.
                 .byte $FF                             ; ########
                 .byte $FF                             ; ########
@@ -155,25 +170,12 @@ PLSHAP1TAB      .byte $00                             ; ........
                 .byte $FF                             ; ########
                 .byte $7E                             ; .######.
                 .byte $7E                             ; .######.
-                .byte $00                             ; ........
+
+                .byte $00                             ; ........    ; [$8E..$9C]
                 .byte $18                             ; ...##...
                 .byte $3C                             ; ..####..
                 .byte $7E                             ; .######.
                 .byte $FF                             ; ########
-                .byte $FF                             ; ########
-                .byte $FF                             ; ########
-                .byte $E7                             ; ###..###
-                .byte $66                             ; .##..##.
-                .byte $FF                             ; ########
-                .byte $FF                             ; ########
-                .byte $FF                             ; ########
-                .byte $FF                             ; ########
-                .byte $7E                             ; .######.
-                .byte $7E                             ; .######.
-                .byte $00                             ; ........
-                .byte $18                             ; ...##...
-                .byte $3C                             ; ..####..
-                .byte $7E                             ; .######.
                 .byte $FF                             ; ########
                 .byte $FF                             ; ########
                 .byte $E7                             ; ###..###
@@ -182,8 +184,24 @@ PLSHAP1TAB      .byte $00                             ; ........
                 .byte $FF                             ; ########
                 .byte $FF                             ; ########
                 .byte $FF                             ; ########
-                .byte $3C                             ; ..####..
+                .byte $7E                             ; .######.
+                .byte $7E                             ; .######.
+
+                .byte $00                             ; ........    ; [$9D..$A9]
                 .byte $18                             ; ...##...
+                .byte $3C                             ; ..####..
+                .byte $7E                             ; .######.
+                .byte $FF                             ; ########
+                .byte $FF                             ; ########
+                .byte $E7                             ; ###..###
+                .byte $66                             ; .##..##.
+                .byte $FF                             ; ########
+                .byte $FF                             ; ########
+                .byte $FF                             ; ########
+                .byte $FF                             ; ########
+                .byte $3C                             ; ..####..
+
+                .byte $18                             ; ...##...    ; [$AA..$B3]
                 .byte $3C                             ; ..####..
                 .byte $FF                             ; ########
                 .byte $FF                             ; ########
@@ -193,7 +211,8 @@ PLSHAP1TAB      .byte $00                             ; ........
                 .byte $FF                             ; ########
                 .byte $7E                             ; .######.
                 .byte $3C                             ; ..####..
-                .byte $00                             ; ........
+
+                .byte $00                             ; ........    ; [$B4..$BB]
                 .byte $18                             ; ...##...
                 .byte $3C                             ; ..####..
                 .byte $FF                             ; ########
@@ -201,12 +220,14 @@ PLSHAP1TAB      .byte $00                             ; ........
                 .byte $FF                             ; ########
                 .byte $3C                             ; ..####..
                 .byte $18                             ; ...##...
-                .byte $18                             ; ...##...
+
+                .byte $18                             ; ...##...    ; [$BC..$C0]
                 .byte $3C                             ; ..####..
                 .byte $FF                             ; ########
                 .byte $3C                             ; ..####..
                 .byte $18                             ; ...##...
-                .byte $28                             ; ..#.#...
+
+                .byte $28                             ; ..#.#...    ; [$C1..$CC]
                 .byte $28                             ; ..#.#...
                 .byte $28                             ; ..#.#...
                 .byte $28                             ; ..#.#...
@@ -220,8 +241,9 @@ PLSHAP1TAB      .byte $00                             ; ........
                 .byte $28                             ; ..#.#...
 
 ;*** Shape table 2 (PLAYER0..1) ************************************************
-PLSHAP2TAB      .byte $00                             ; ........
-                .byte $81                             ; #......#
+PLSHAP2TAB      .byte $00                             ; ........    ; [$00]
+
+                .byte $81                             ; #......#    ; [$01..$0C]
                 .byte $81                             ; #......#
                 .byte $81                             ; #......#
                 .byte $81                             ; #......#
@@ -233,7 +255,8 @@ PLSHAP2TAB      .byte $00                             ; ........
                 .byte $81                             ; #......#
                 .byte $81                             ; #......#
                 .byte $81                             ; #......#
-                .byte $82                             ; #.....#.
+
+                .byte $82                             ; #.....#.    ; [$0D..$14]
                 .byte $82                             ; #.....#.
                 .byte $BA                             ; #.###.#.
                 .byte $FE                             ; #######.
@@ -241,31 +264,38 @@ PLSHAP2TAB      .byte $00                             ; ........
                 .byte $BA                             ; #.###.#.
                 .byte $82                             ; #.....#.
                 .byte $82                             ; #.....#.
-                .byte $42                             ; .#....#.
+
+                .byte $42                             ; .#....#.    ; [$15..$1A]
                 .byte $5A                             ; .#.##.#.
                 .byte $7E                             ; .######.
                 .byte $7E                             ; .######.
                 .byte $5A                             ; .#.##.#.
                 .byte $42                             ; .#....#.
-                .byte $44                             ; .#...#..
+
+                .byte $44                             ; .#...#..    ; [$1B..$20]
                 .byte $54                             ; .#.#.#..
                 .byte $7C                             ; .#####..
                 .byte $7C                             ; .#####..
                 .byte $54                             ; .#.#.#..
                 .byte $44                             ; .#...#..
-                .byte $24                             ; ..#..#..
+
+                .byte $24                             ; ..#..#..    ; [$21..$24]
                 .byte $3C                             ; ..####..
                 .byte $3C                             ; ..####..
                 .byte $24                             ; ..#..#..
-                .byte $28                             ; ..#.#...
+
+                .byte $28                             ; ..#.#...    ; [$25..$28]
                 .byte $38                             ; ..###...
                 .byte $38                             ; ..###...
                 .byte $28                             ; ..#.#...
+
+                .byte $18                             ; ...##...    ; [$29..$2A]
                 .byte $18                             ; ...##...
-                .byte $18                             ; ...##...
+
+                .byte $10                             ; ...#....    ; [$2B..$2C]
                 .byte $10                             ; ...#....
-                .byte $10                             ; ...#....
-                .byte $E0                             ; ###.....
+
+                .byte $E0                             ; ###.....    ; [$2D..$36]
                 .byte $F8                             ; #####...
                 .byte $F8                             ; #####...
                 .byte $FE                             ; #######.
@@ -274,9 +304,11 @@ PLSHAP2TAB      .byte $00                             ; ........
                 .byte $F8                             ; #####...
                 .byte $F8                             ; #####...
                 .byte $C0                             ; ##......
-                .byte $C0                             ; ##......
-                .byte $F0                             ; ####....
-                .byte $C0                             ; ##......
+                .byte $C0                             ; ##......                    \ [$36..$38]    ; [$36]
+                                                                                    ;
+                .byte $F0                             ; ####....    ; [$39]         ;
+                                                                                    ;
+                .byte $C0                             ; ##......    ; [$38..$40]    /
                 .byte $F0                             ; ####....
                 .byte $F0                             ; ####....
                 .byte $FC                             ; ######..
@@ -285,13 +317,15 @@ PLSHAP2TAB      .byte $00                             ; ........
                 .byte $F0                             ; ####....
                 .byte $80                             ; #.......
                 .byte $80                             ; #.......
-                .byte $C0                             ; ##......
+
+                .byte $C0                             ; ##......    ; [$41..$46]
                 .byte $C0                             ; ##......
                 .byte $F0                             ; ####....
                 .byte $BC                             ; #.####..
                 .byte $F0                             ; ####....
                 .byte $C0                             ; ##......
-                .byte $07                             ; .....###
+
+                .byte $07                             ; .....###    ; [$47..$50]
                 .byte $1F                             ; ...#####
                 .byte $1F                             ; ...#####
                 .byte $7F                             ; .#######
@@ -300,9 +334,11 @@ PLSHAP2TAB      .byte $00                             ; ........
                 .byte $1F                             ; ...#####
                 .byte $1F                             ; ...#####
                 .byte $03                             ; ......##
-                .byte $03                             ; ......##
-                .byte $0F                             ; ....####
-                .byte $03                             ; ......##
+                .byte $03                             ; ......##                    \ [$50..$52]    ; [$50]
+                                                                                    ;
+                .byte $0F                             ; ....####                    ;
+                                                                                    ;
+                .byte $03                             ; ......##    ; [$52..$5A]    /
                 .byte $0F                             ; ....####
                 .byte $0F                             ; ....####
                 .byte $3F                             ; ..######
@@ -311,13 +347,15 @@ PLSHAP2TAB      .byte $00                             ; ........
                 .byte $0F                             ; ....####
                 .byte $01                             ; .......#
                 .byte $01                             ; .......#
-                .byte $03                             ; ......##
+
+                .byte $03                             ; ......##    ; [$5B..$60]
                 .byte $03                             ; ......##
                 .byte $0F                             ; ....####
                 .byte $3D                             ; ..####.#
                 .byte $0F                             ; ....####
                 .byte $03                             ; ......##
-                .byte $18                             ; ...##...
+
+                .byte $18                             ; ...##...    ; [$61..$69]
                 .byte $3C                             ; ..####..
                 .byte $7E                             ; .######.
                 .byte $7E                             ; .######.
@@ -326,7 +364,8 @@ PLSHAP2TAB      .byte $00                             ; ........
                 .byte $81                             ; #......#
                 .byte $81                             ; #......#
                 .byte $81                             ; #......#
-                .byte $10                             ; ...#....
+
+                .byte $10                             ; ...#....    ; [$6A..$71]
                 .byte $38                             ; ..###...
                 .byte $7C                             ; .#####..
                 .byte $7C                             ; .#####..
@@ -334,27 +373,32 @@ PLSHAP2TAB      .byte $00                             ; ........
                 .byte $C6                             ; ##...##.
                 .byte $82                             ; #.....#.
                 .byte $82                             ; #.....#.
-                .byte $18                             ; ...##...
+
+                .byte $18                             ; ...##...    ; [$72..$78]
                 .byte $3C                             ; ..####..
                 .byte $3C                             ; ..####..
                 .byte $66                             ; .##..##.
                 .byte $66                             ; .##..##.
                 .byte $42                             ; .#....#.
                 .byte $42                             ; .#....#.
-                .byte $10                             ; ...#....
+
+                .byte $10                             ; ...#....    ; [$79..$7E]
                 .byte $38                             ; ..###...
                 .byte $38                             ; ..###...
                 .byte $6C                             ; .##.##..
                 .byte $44                             ; .#...#..
                 .byte $44                             ; .#...#..
-                .byte $18                             ; ...##...
+
+                .byte $18                             ; ...##...    ; [$7F..$82]
                 .byte $3C                             ; ..####..
                 .byte $24                             ; ..#..#..
                 .byte $24                             ; ..#..#..
-                .byte $10                             ; ...#....
+
+                .byte $10                             ; ...#....    ; [$83..$85]
                 .byte $38                             ; ..###...
                 .byte $28                             ; ..#.#...
-                .byte $18                             ; ...##...
+
+                .byte $18                             ; ...##...    ; [$86..$8F]
                 .byte $3C                             ; ..####..
                 .byte $7E                             ; .######.
                 .byte $FF                             ; ########
@@ -364,7 +408,8 @@ PLSHAP2TAB      .byte $00                             ; ........
                 .byte $7E                             ; .######.
                 .byte $3C                             ; ..####..
                 .byte $18                             ; ...##...
-                .byte $10                             ; ...#....
+
+                .byte $10                             ; ...#....    ; [$90..$99]
                 .byte $38                             ; ..###...
                 .byte $7C                             ; .#####..
                 .byte $FE                             ; #######.
@@ -374,26 +419,30 @@ PLSHAP2TAB      .byte $00                             ; ........
                 .byte $7C                             ; .#####..
                 .byte $38                             ; ..###...
                 .byte $10                             ; ...#....
-                .byte $18                             ; ...##...
+
+                .byte $18                             ; ...##...    ; [$9A..$A0]
                 .byte $3C                             ; ..####..
                 .byte $7E                             ; .######.
                 .byte $18                             ; ...##...
                 .byte $7E                             ; .######.
                 .byte $3C                             ; ..####..
                 .byte $18                             ; ...##...
-                .byte $10                             ; ...#....
+
+                .byte $10                             ; ...#....    ; [$A1..$A7]
                 .byte $38                             ; ..###...
                 .byte $7C                             ; .#####..
                 .byte $10                             ; ...#....
                 .byte $7C                             ; .#####..
                 .byte $38                             ; ..###...
                 .byte $10                             ; ...#....
-                .byte $18                             ; ...##...
+
+                .byte $18                             ; ...##...    ; [$A8..$AC]
                 .byte $3C                             ; ..####..
                 .byte $18                             ; ...##...
                 .byte $3C                             ; ..####..
                 .byte $18                             ; ...##...
-                .byte $10                             ; ...#....
+
+                .byte $10                             ; ...#....    ; [$AD..$B0]
                 .byte $38                             ; ..###...
                 .byte $38                             ; ..###...
                 .byte $10                             ; ...#....
@@ -445,7 +494,7 @@ DLSTFRAGOFFTAB  .byte DLSTFRAGFRONT-DLSTFRAG          ; Front view
                 .byte DLSTFRAGLRS-DLSTFRAG            ; Long-Range Scan view
                 .byte DLSTFRAGGC-DLSTFRAG             ; Galactic Chart view
 
-;*** 1-byte bit patterns for 4 pixels of same color for PLAYFIELD space objects 
+;*** 1-byte bit patterns for 4 pixels of same color for PLAYFIELD space objects
 FOURCOLORPIXEL  .byte $FF                             ; COLOR3
                 .byte $FF                             ; COLOR3
                 .byte $FF                             ; COLOR3
@@ -669,49 +718,59 @@ PANELTXTTAB     .byte CCS_V
                 .byte CCS_COLON
                 .byte CCS_0
                 .byte CCS_0
+
                 .byte CCS_SPC
+
                 .byte CCS_COL1|CCS_K
                 .byte CCS_COL1|CCS_COLON
                 .byte CCS_COL1|CCS_0
                 .byte CCS_COL1|CCS_0
+
                 .byte CCS_SPC
+
                 .byte CCS_COL2|CCS_E
                 .byte CCS_COL2|CCS_COLON
                 .byte CCS_COL2|CCS_9
                 .byte CCS_COL2|CCS_9
                 .byte CCS_COL2|CCS_9
                 .byte CCS_COL2|CCS_9
+
                 .byte CCS_SPC
+
                 .byte CCS_T
                 .byte CCS_COLON
                 .byte CCS_0
 
                 .byte CCS_SPC
+
                 .byte CCS_THETA
                 .byte CCS_COLON
                 .byte CCS_MINUS
                 .byte CCS_0
                 .byte CCS_0
+
                 .byte CCS_SPC
+
                 .byte CCS_COL1|CCS_PHI
                 .byte CCS_COL1|CCS_COLON
                 .byte CCS_MINUS
                 .byte CCS_0
                 .byte CCS_0
+
                 .byte CCS_SPC
+
                 .byte CCS_COL2|CCS_R
                 .byte CCS_COL2|CCS_COLON
                 .byte CCS_MINUS
                 .byte CCS_0
                 .byte CCS_0
                 .byte CCS_0
+
                 .byte CCS_SPC
 
 ;*** Text of Galactic Chart Panel Display **************************************
-; Row 1: "WARP ENERGY:   0    "
-; Row 2: "TARGETS:  DC:PESCLR "
-; Row 3: "STAR DATE:00.00     "
 
+; Row 1: "WARP ENERGY:   0    "
                 .byte ROM_W
                 .byte ROM_A
                 .byte ROM_R
@@ -733,6 +792,7 @@ PANELTXTTAB     .byte CCS_V
                 .byte ROM_SPC
                 .byte ROM_SPC
 
+; Row 2: "TARGETS:  DC:PESCLR "
                 .byte CCS_COL2|ROM_T
                 .byte CCS_COL2|ROM_A
                 .byte CCS_COL2|ROM_R
@@ -754,6 +814,7 @@ PANELTXTTAB     .byte CCS_V
                 .byte ROM_R
                 .byte ROM_SPC
 
+; Row 3: "STAR DATE:00.00     "
                 .byte CCS_COL3|ROM_S
                 .byte CCS_COL3|ROM_T
                 .byte CCS_COL3|ROM_A
@@ -884,9 +945,9 @@ PHRASETAB       .byte $00                             ; (unused)
 ; word
 ;
 ; LOCAL VARIABLES
-EOW             = $80                                 ; End of word
+EOW             = $80                                  ; End of word
 
-WORDTAB         .text EOW|$20,"    RED ALERT"         ; Word $01
+WORDTAB         .text EOW|$20,"    RED ALERT"          ; Word $01
                 .text EOW|'O',"N"                      ; Word $02
                 .text EOW|'O',"FF"                     ; Word $03
                 .text EOW|'S',"HIELDS"                 ; Word $04
@@ -912,7 +973,7 @@ WORDTAB         .text EOW|$20,"    RED ALERT"         ; Word $01
                 .text EOW|'S',"TAR CRUISER 7"          ; Word $18
                 .text EOW|'A',"LL UNITS"               ; Word $19
                 .text EOW|'M',"ISSION"                 ; Word $1A
-                .text EOW|$20,"   STAR RAIDERS"       ; Word $1B
+                .text EOW|$20,"   STAR RAIDERS"        ; Word $1B
                 .text EOW|'Z',"ERO"                    ; Word $1C
                 .text EOW|'B',"Y ZYLON FIRE"           ; Word $1D
                 .text EOW|'P',"OSTHUMOUS"              ; Word $1E
@@ -1171,7 +1232,7 @@ PLSHAPHEIGHTTAB .byte $0F,$0D,$0B,$09,$07,$05,$01,$01 ; ...0
                 .byte $0B,$0B,$0B,$0B,$0B,$0B,$01,$0B ; ...9
 
 
-;*** Keyboard codes to switch to Front or Aft view when Tracking Computer is on 
+;*** Keyboard codes to switch to Front or Aft view when Tracking Computer is on
 TRACKKEYSTAB    .byte $F8                             ; 'F' - Front view
                 .byte $FF                             ; 'A' - Aft view
 
@@ -1367,13 +1428,9 @@ NOISEPATTAB     .byte $18,$FF,$02,$00,$8A,$A0,$00,$08,$50,$00; PHOTON TORPEDO LA
 ;
 ;                     (0),(1),(2),(3),(4),(5)
 BEEPPATTAB      .byte $02,$02,$02,$03,$0C,$02         ; HYPERWARP TRANSIT
-
                 .byte $04,$03,$FF,$10,$07,$04         ; RED ALERT
-
                 .byte $07,$04,$02,$02,$00,$07         ; ACKNOWLEDGE
-
                 .byte $0B,$05,$FF,$20,$02,$0B         ; DAMAGE REPORT
-
                 .byte $0E,$06,$08,$20,$00,$0E         ; MESSAGE FROM STARBASE
 
 
@@ -1500,7 +1557,7 @@ COMPASSOFFTAB   .char -16                             ; NORTH
                 .char -15                             ; NORTHEAST
                 .byte 0                               ; CENTER
 
-;*** Homing velocities of photon torpedoes 0..1 depending on distance to target 
+;*** Homing velocities of photon torpedoes 0..1 depending on distance to target
 HOMVELTAB       .byte 0                               ;  +0 <KM/H>
                 .byte 8                               ;  +8 <KM/H>
                 .byte 16                              ; +16 <KM/H>
