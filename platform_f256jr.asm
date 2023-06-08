@@ -1553,32 +1553,6 @@ _next1          lda (zpSource),Y
                 dex
                 bne _nextPage
 
-;   Font #1
-FONT1           lda #<CHARSET
-                sta zpSource
-                lda #>CHARSET
-                sta zpSource+1
-
-                lda #<FONT_MEMORY_BANK1
-                sta zpDest
-                lda #>FONT_MEMORY_BANK1
-                sta zpDest+1
-                stz zpDest+2
-
-                ldx #$01                ; 1 page
-_nextPage       ldy #$00
-_next1          lda (zpSource),Y
-                sta (zpDest),Y
-
-                iny
-                bne _next1
-
-                inc zpSource+1
-                inc zpDest+1
-
-                dex
-                bne _nextPage
-
 ;   switch to system map
                 stz IOPAGE_CTRL
 

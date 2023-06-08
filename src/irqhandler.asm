@@ -37,9 +37,6 @@ VBIHNDLR        ;.proc
                 lda #$FF                ; Signals entering Vertical Blank Interrupt
                 sta ISVBISYNC           ;
 
-                ;--lda #>ROMCHARSET        ; Switch character set to ROM character set
-                ;--sta CHBASE              ;
-
                 ldx BGRCOLOR            ; Preload BACKGROUND color
                 .randomByte             ; Preload random number
                 bit HITBADNESS          ; Check if our starship was hit
@@ -109,16 +106,7 @@ DLSTHNDLR       ;.proc
                 tya                     ;
                 pha                     ; Push Y
 
-                ;--ldy VCOUNT
-                cpy #96                 ;
-                beq _1                  ; line counter = 96?
-
-                .frsFont1               ;   no, switch to custom character set
-                bra _2
-
-_1              .frsFont0               ;   yes, switch to standard charset
-
-_2              ldx #4                  ; Loop over all PLAYFIELD colors
+                ldx #4                  ; Loop over all PLAYFIELD colors
                 ;--sta WSYNC               ; Stop and wait for horizontal TV beam sync
 _next1          lda PF0COLORDLI,X       ; Copy DLI PLAYFIELD colors to hardware registers
                 ;--sta COLPF0,X            ;

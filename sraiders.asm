@@ -114,7 +114,6 @@ INIT            .proc
 ;--------------------------------------
 
                 .include "DATA/PART1.inc"
-                .include "DATA/CHARSET.inc"
                 .include "DATA/VIEWS.inc"
 
 ;--------------------------------------
