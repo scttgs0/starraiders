@@ -24,16 +24,15 @@
 ;*                                                                             *
 ;*******************************************************************************
 
-                .cpu "65c02"
-
-                .include "equates/system_f256jr.equ"
+                .include "equates/system_f256.equ"
                 .include "equates/zeropage.equ"
                 .include "equates/game.equ"
 
-                .include "macros/frs_jr_graphic.mac"
-                .include "macros/frs_jr_mouse.mac"
-                .include "macros/frs_jr_random.mac"
-                .include "macros/frs_jr_text.mac"
+                .include "macros/f256_graphic.mac"
+                .include "macros/f256_mouse.mac"
+                .include "macros/f256_random.mac"
+                .include "macros/f256_sprite.mac"
+                .include "macros/f256_text.mac"
 
 
 ;--------------------------------------
@@ -41,27 +40,39 @@
                 * = $8000
 ;--------------------------------------
 
-;   Boot from RAM data block
-
+.if PGX=1
+                .text "PGX"
+                .byte $03
+                .dword BOOT
+;--------------------------------------
+.else
                 .byte $F2,$56           ; signature
                 .byte $02               ; block count
                 .byte $04               ; start at block1
                 .addr BOOT              ; execute address
-                .word $0000             ; version
+                .word $0001             ; version
                 .word $0000             ; kernel
-                                        ; binary name
-                .text 'Star Raiders',$00
+                .null 'Star Raiders'    ; binary name
+.endif
 
 ;--------------------------------------
 
 BOOT            cld                     ; clear decimal
+
                 ldx #$FF                ; initialize the stack
                 txs
+
+                stz IOPAGE_CTRL
+
+                stz BACKGROUND_COLOR_R
+                stz BACKGROUND_COLOR_G
+                stz BACKGROUND_COLOR_B
+
                 jmp INIT
 
 ;--------------------------------------
 
-                .include "platform_f256jr.asm"
+                .include "platform_f256.asm"
 
 ;--------------------------------------
                 .align $100
@@ -76,7 +87,7 @@ Palette_end
 ;--------------------------------------
 
 INIT            .proc
-                jsr InitSystemVectors
+                jsr InitCPUVectors
                 ; jsr InitMMU
 
                 jsr RandomSeedQuick

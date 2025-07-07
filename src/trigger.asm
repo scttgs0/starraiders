@@ -67,7 +67,7 @@ TRIGGER         .proc
                 pha
 
                 lda JOYSTICK0
-                and #JOY_BUTTON0
+                and #joyButton0
                 tay                     ; Copy current trigger state
                 pla
 

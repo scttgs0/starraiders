@@ -203,7 +203,7 @@ _next4          lda SECTORTYPETAB,X     ; Prep sector type
                 iny                     ;
                 sty L_SECTORCNT         ;
 
-_next5          .randomByte             ; Load random sector 0..127 from GC memory map
+_next5          .frsRandomByte          ; Load random sector 0..127 from GC memory map
                 and #$7F                ;
                 tay                     ;
                 lda GCMEMMAP,Y          ;

@@ -38,7 +38,7 @@ VBIHNDLR        ;.proc
                 sta ISVBISYNC           ;
 
                 ldx BGRCOLOR            ; Preload BACKGROUND color
-                .randomByte             ; Preload random number
+                .frsRandomByte          ; Preload random number
                 bit HITBADNESS          ; Check if our starship was hit
                 bvc _2                  ; If HITBADNESS has a value of...
                 bmi _1                  ; $00 -> NO HIT             (BGR color := unchanged)

@@ -168,16 +168,16 @@ JIFFYCLOCK          .byte ?
 
 InputFlags          .byte ?
                     .byte ?
-InputType           .byte ?
-                    .byte ?
+InputType           .byte ?             ; Joystick/Keyboard for Player 1
+                    .byte ?             ; Joystick/Keyboard for Player 2
 itJoystick      = 0
 itKeyboard      = 1
 KEYCHAR             .byte ?             ; last key pressed
 CONSOL              .byte ?             ; state of OPTION,SELECT,START
 
-zpSource            .word ?             ; Starting address for the source data (4 bytes)
-zpDest              .word ?             ; Starting address for the destination block (4 bytes)
-zpSize              .word ?             ; Number of bytes to copy (4 bytes)
+zpSource            .long ?             ; Starting address for the source data
+zpDest              .long ?             ; Starting address for the destination block
+zpSize              .long ?             ; Number of bytes to copy
 
 zpTemp1             .byte ?
 zpTemp2             .byte ?
@@ -185,6 +185,3 @@ zpTemp2             .byte ?
 RND_MIN             .byte ?
 RND_SEC             .byte ?
 RND_RESULT          .word ?
-
-CharResX        = 40
-CharResY        = 30

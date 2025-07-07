@@ -137,3 +137,9 @@ MAPTO80         = $0DE9
 MAPTOBCD99      = $0EE9
 
 PFMEM           = $1000
+
+CharResX        = 40
+CharResY        = 30
+
+TRUE            = 1
+FALSE           = 0

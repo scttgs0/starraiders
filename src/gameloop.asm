@@ -323,7 +323,7 @@ _next5          sta PL0DATA,Y           ;
 
 _next6          lda PLSHAP1TAB,Y        ; Load PLAYER4 shape byte from shape data table
                 bcs _2                  ; Skip if PLAYER4 not PHOTON TORPEDO (shape type 0)
-                and randomREG           ; and random bits to shape byte
+                and frsRandomREG        ; and random bits to shape byte
 _2              sta PL4DATA,X           ; Store shape byte in PLAYER4 data area
                 iny                     ;
                 inx                     ;
@@ -340,7 +340,7 @@ _2              sta PL4DATA,X           ; Store shape byte in PLAYER4 data area
                 sta PL3HEIGHT           ;
 _next7          lda PLSHAP1TAB,Y        ;
                 bcs _3                  ;
-                and randomREG           ;
+                and frsRandomREG        ;
 _3              sta PL3DATA,X           ;
                 inx                     ;
                 iny                     ;
@@ -357,7 +357,7 @@ _3              sta PL3DATA,X           ;
                 sta PL2HEIGHT           ;
 _next8          lda PLSHAP1TAB,Y        ;
                 bcs _4                  ;
-                and randomREG           ;
+                and frsRandomREG        ;
 _4              sta PL2DATA,X           ;
                 inx                     ;
                 iny                     ;
@@ -718,7 +718,7 @@ _1              lda #0                  ;
                 cpx #3                  ; Next PLAYER space object if PLAYER0..2
                 bcc _next1              ;
 
-_next2          .randomByte             ; Prep random color mask for warp markers/LRS blips
+_next2          .frsRandomByte          ; Prep random color mask for warp markers/LRS blips
                 ldy #$F2                ; Prep magic z-coordinate for warp markers/LRS blips
                 bmi _4                  ; Unconditional jump
 
@@ -793,7 +793,7 @@ _6              sta L_RANGEINDEX        ; ...trim to range index in 0..15
                 lda PLSHAPCOLORTAB,Y    ;
                 cpy #8                  ; Pick random color if ZYLON BASESTAR (shape type 8)
                 bne _7                  ;
-                eor randomREG           ;
+                eor frsRandomREG        ;
 _7              ldy L_RANGEINDEX        ;
                 eor PLSHAPBRITTAB,Y     ; Pick brightness (B3..0) using range index and merge
 

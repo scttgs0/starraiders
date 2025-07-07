@@ -228,7 +228,7 @@ _1              sta L_TERM3HI           ; If TERM2 pos. -> TERM3 := $0000xx (= T
                 lda ZPOSHI,X            ; where xx := TERM2 (high byte)
                 sta L_TERM3LO           ;
 
-                .randomByte             ; (?) Hack to avoid messing with two-complement's
+                .frsRandomByte          ; (?) Hack to avoid messing with two-complement's
                 ora #$BF                ; (?) arithmetic? Provides two least significant
                 eor ZPOSLO,X            ; (?) bits B1..0 in TERM3.
 
@@ -420,7 +420,7 @@ _1              bit SHIPVIEW            ; Skip if not in Long-Range Scan view
                 bit GCSTATLRS           ; Skip if Long-Range Scan OK
                 bpl _2                  ;
 
-                bit randomREG           ; Long-Range Scan damaged...
+                bit frsRandomREG        ; Long-Range Scan damaged...
                 bvc _4                  ; ...branch randomly to pixel row number calculation
                 bvs _5                  ; ...(mirror effect)
 
@@ -534,12 +534,12 @@ INITPOSVEC      .proc
                 cpx #NUMSPCOBJ_NORM     ; Return if pos vector is explosion frag space obj
                 bcs SCREENROW._XIT      ; This avoids creating new explosion frag space objs
 
-                .randomByte             ; RNDY := RND($00..$0F)
+                .frsRandomByte          ; RNDY := RND($00..$0F)
                 and #$0F                ;
                 sta L_MAXRNDXY          ; Save RNDY
                 sta YPOSHI,X            ; y-coordinate (high byte) := RNDY
 
-                .randomByte             ; RNDX := RND($00..$0F)
+                .frsRandomByte          ; RNDX := RND($00..$0F)
                 and #$0F                ;
                 cmp L_MAXRNDXY          ;
                 bcc _1                  ;
@@ -569,9 +569,9 @@ _2              bit SHIPVIEW            ; If not in Long-Range Scan view skip to
                 bvc RNDINVXY            ;
 
                                         ; Long-Range Scan view only:
-                .randomByte             ; x-coordinate (high byte) := RND($00..$FF)
+                .frsRandomByte          ; x-coordinate (high byte) := RND($00..$FF)
                 sta XPOSHI,X            ;
-                .randomByte             ; z-coordinate (high byte) := RND($00..$FF)
+                .frsRandomByte          ; z-coordinate (high byte) := RND($00..$FF)
                 sta ZPOSHI,X            ;
                 and #$01                ; Invert z-coordinate randomly
                 sta ZPOSSIGN,X          ;
@@ -604,7 +604,7 @@ _2              bit SHIPVIEW            ; If not in Long-Range Scan view skip to
 ; of a position vector
 ;======================================
 RNDINVXY        .proc
-                .randomByte             ; Set sign of y-coordinate randomly
+                .frsRandomByte          ; Set sign of y-coordinate randomly
                 and #$01                ;
                 sta YPOSSIGN,X          ;
                 bne _1                  ; Skip if sign positive
@@ -616,7 +616,7 @@ RNDINVXY        .proc
                 sbc YPOSHI,X            ;
                 sta YPOSHI,X            ;
 
-_1              .randomByte             ; Set sign of x-coordinate randomly
+_1              .frsRandomByte          ; Set sign of x-coordinate randomly
                 and #$01                ;
                 sta XPOSSIGN,X          ;
                 bne _XIT                ; Skip if sign positive

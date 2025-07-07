@@ -1,0 +1,82 @@
+
+; SPDX-FileName: f256_sprite.mac
+; SPDX-FileCopyrightText: Copyright 2023, Scott Giese
+; SPDX-License-Identifier: GPL-3.0-or-later
+
+
+sprite_t        .struct
+CTRL            .byte ?
+ADDR            .long ?
+X               .word ?
+Y               .word ?
+                .endstruct
+
+
+SPR             .sfunction field,idx,(SPRITE_BASE+field+(idx<<3))
+
+
+frsSpriteInit   .macro source,attr,idx
+                lda #<\source
+                sta SPR(sprite_t.ADDR, \idx)
+                lda #>\source
+                sta SPR(sprite_t.ADDR+1, \idx)
+                stz SPR(sprite_t.ADDR+2, \idx)
+
+                stz SPR(sprite_t.X, \idx)
+                stz SPR(sprite_t.X+1, \idx)
+                stz SPR(sprite_t.Y, \idx)
+                stz SPR(sprite_t.Y+1, \idx)
+
+                lda #\attr
+                sta SPR(sprite_t.CTRL, \idx)
+                .endmacro
+
+
+frsSpriteShow   .macro idx
+                lda SPR(sprite_t.CTRL, \idx)
+                ora #scEnable
+                sta SPR(sprite_t.CTRL, \idx)
+                .endmacro
+
+
+frsSpriteHide   .macro idx
+                lda SPR(sprite_t.CTRL, \idx)
+                and #~scEnable
+                sta SPR(sprite_t.CTRL, \idx)
+                .endmacro
+
+
+frsSpriteClear  .macro idx
+                stz SPR(sprite_t.X, \idx)
+                stz SPR(sprite_t.X+1, \idx)
+                stz SPR(sprite_t.Y, \idx)
+                stz SPR(sprite_t.Y+1, \idx)
+                .endmacro
+
+
+frsSpriteClearX .macro idx
+                stz SPR(sprite_t.X, \idx)
+                stz SPR(sprite_t.X+1, \idx)
+                .endmacro
+
+
+frsSpriteClearY .macro idx
+                stz SPR(sprite_t.Y, \idx)
+                stz SPR(sprite_t.Y+1, \idx)
+                .endmacro
+
+
+frsSpriteSetX   .macro val,idx
+                lda #<\val
+                sta SPR(sprite_t.X, \idx)
+                lda #>\val
+                sta SPR(sprite_t.X+1, \idx)
+                .endmacro
+
+
+frsSpriteSetY   .macro val,idx
+                lda #<\val
+                sta SPR(sprite_t.Y, \idx)
+                lda #>\val
+                sta SPR(sprite_t.Y+1, \idx)
+                .endmacro

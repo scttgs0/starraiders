@@ -337,7 +337,7 @@ _7              lda NOISEHITLIFE        ; Skip if STARSHIP EXPLOSION noise not i
                 beq _8                  ;
 
                 dec NOISEHITLIFE        ; Decrement STARSHIP EXPLOSION noise lifetime
-                .randomByte             ; Set random frequency to AUDF3
+                .frsRandomByte          ; Set random frequency to AUDF3
                 sta SID1_FREQ3          ;
                 and #$20                ; Toggle noise/tone dist. of AUDC3's shadow register
                 eor NOISEAUDC3          ; ...randomly

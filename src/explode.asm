@@ -70,13 +70,13 @@ INITEXPL        .proc
 
                                         ; Loop over all explosion fragment position vectors
                                         ; (index 48..17)
-_next1          .randomByte             ; PIXEL COLUMN NUM := PLAYER column - 48 + RND(0..15)
+_next1          .frsRandomByte          ; PIXEL COLUMN NUM := PLAYER column - 48 + RND(0..15)
                 and #$0F                ; (!)
                 adc PL0COLUMN,Y         ;
                 sbc #48                 ;
                 sta PIXELCOLUMN,X       ;
 
-                .randomByte             ; PIXEL ROW NUM := (PLAYER row + RND(0..15)) / 2 - 16
+                .frsRandomByte          ; PIXEL ROW NUM := (PLAYER row + RND(0..15)) / 2 - 16
                 and #$0F                ;
                 adc PL0ROWNEW,Y         ;
                 lsr                     ; (!)
@@ -85,13 +85,13 @@ _next1          .randomByte             ; PIXEL COLUMN NUM := PLAYER column - 48
 
                 jsr CopyPositionVector          ; Copy position vector of PLAYER to explosion frag
 
-                .randomByte             ; z-velocity := RND(-7..+7) <KM/H>
+                .frsRandomByte          ; z-velocity := RND(-7..+7) <KM/H>
                 and #NEG|7              ;
                 sta ZVEL,X              ;
-                .randomByte             ; x-velocity := RND(-7..+7) <KM/H>
+                .frsRandomByte          ; x-velocity := RND(-7..+7) <KM/H>
                 and #NEG|7              ;
                 sta XVEL,X              ;
-                .randomByte             ; y-velocity := RND(-7..+7) <KM/H>
+                .frsRandomByte          ; y-velocity := RND(-7..+7) <KM/H>
                 and #NEG|7              ;
                 sta YVEL,X              ;
 
