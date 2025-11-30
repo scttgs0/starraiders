@@ -392,15 +392,15 @@ _next10         lda PLSHAP2TAB,Y        ;
 
 ;*** (7) Update PLAYER horizontal positions ************************************
                 lda PL0COLUMN           ; Update horizontal position of PLAYER0
-                sta SP00_X              ;
+                sta SPR(sprite_t.X, 0)  ;
                 lda PL1COLUMN           ; Update horizontal position of PLAYER1
-                sta SP01_X              ;
+                sta SPR(sprite_t.X, 1)  ;
                 lda PL2COLUMN           ; Update horizontal position of PLAYER2
-                sta SP02_X              ;
+                sta SPR(sprite_t.X, 2)  ;
                 lda PL3COLUMN           ; Update horizontal position of PLAYER3
-                sta SP03_X              ;
+                sta SPR(sprite_t.X, 3)  ;
                 lda PL4COLUMN           ; Update horizontal position of PLAYER4
-                sta SP04_X              ;
+                sta SPR(sprite_t.X, 4)  ;
 
 ;*** (8) Rotate space objects horizontally and vertically **********************
                 bit SHIPVIEW            ; Skip if in Galactic Chart view

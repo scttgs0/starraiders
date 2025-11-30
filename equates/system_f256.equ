@@ -576,7 +576,7 @@ BG_CHAR_LUT_PTR         = $D840         ; 16 entries = ARGB
 
 SPRITE_BASE             = $D900
 
-SP00_CTRL               = $D900         ; [write-only]
+; SP00_CTRL             = $D900         ; [write-only]
 scEnable            = $01
 scLUT0              = $00
 scLUT1              = $02
@@ -593,29 +593,24 @@ scSIZE_24           = $20
 scSIZE_16           = $40
 scSIZE_8            = $60
 
-SP00_ADDR               = $D901         ; [write-only] [long] Bits[18:0]
-SP00_X                  = $D904         ; [write-only] [word]
-SP00_Y                  = $D906         ; [write-only] [word]
+; SP00_ADDR             = $D901         ; [write-only] [long] Bits[18:0]
+; SP00_X                = $D904         ; [write-only] [word]
+; SP00_Y                = $D906         ; [write-only] [word]
 
-SP01_CTRL               = $D908         ; [write-only]
-SP01_ADDR               = $D909         ; [write-only]
-SP01_X                  = $D90C         ; [write-only]
-SP01_Y                  = $D90E         ; [write-only]
+; SP01_CTRL             = $D908         ; [write-only]
+; SP01_ADDR             = $D909         ; [write-only]
+; SP01_X                = $D90C         ; [write-only]
+; SP01_Y                = $D90E         ; [write-only]
 
-SP02_CTRL               = $D910         ; [write-only]
-SP02_ADDR               = $D911         ; [write-only]
-SP02_X                  = $D914         ; [write-only]
-SP02_Y                  = $D916         ; [write-only]
+; SP02_CTRL             = $D910         ; [write-only]
+; SP02_ADDR             = $D911         ; [write-only]
+; SP02_X                = $D914         ; [write-only]
+; SP02_Y                = $D916         ; [write-only]
 
-SP03_CTRL               = $D918         ; [write-only]
-SP03_ADDR               = $D919         ; [write-only]
-SP03_X                  = $D91C         ; [write-only]
-SP03_Y                  = $D91E         ; [write-only]
-
-SP04_CTRL               = $D920         ; [write-only]
-SP04_ADDR               = $D921         ; [write-only]
-SP04_X                  = $D924         ; [write-only]
-SP04_Y                  = $D926         ; [write-only]
+; SP03_CTRL             = $D918         ; [write-only]
+; SP03_ADDR             = $D919         ; [write-only]
+; SP03_X                = $D91C         ; [write-only]
+; SP03_Y                = $D91E         ; [write-only]
 
 ;...
 
